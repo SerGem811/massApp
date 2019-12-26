@@ -105,10 +105,10 @@ export function getUser () {
   })
 }
 
-export function updateUser (data) {
+export function updateConfigData (data) {
   return axios({
     method: 'PUT',
-    url: USER_DATA_URL + '/1',
+    url: USER_DATA_URL + '/' + data.id,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -118,10 +118,34 @@ export function updateUser (data) {
   })
 }
 
+export function createConfigData(data) {
+  return axios({
+    method: 'POST',
+    url: USER_DATA_URL,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    data
+  });
+}
+
 export function getBulkData () {
   return axios({
     method: 'GET',
     url: BULK_DATA_URL,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+export function getConfigData(data) {
+  const url = USER_DATA_URL + '?type=' + data;
+  return axios({
+    method: 'GET',
+    url: url,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'

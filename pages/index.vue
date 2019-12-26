@@ -82,6 +82,23 @@
                     <i class="el-icon-delete"></i>
                   </el-button>
                 </el-popconfirm>
+                <el-popconfirm
+                  @onConfirm="updateBlock(item.id)"
+                  confirmButtonText="OK"
+                  cancelButtonText="Cancel"
+                  icon="el-icon-info"
+                  iconColor="red"
+                  title="Are you sure to change this?"
+                >
+                  <el-button
+                    slot="reference"
+                    class="btn-danger btn btn-sm"
+                    type="danger"
+                    size="small"
+                  >
+                    <i class="el-icon-delete"></i>
+                  </el-button>
+                </el-popconfirm>
               </td>
               <td>{{ item.name }}</td>
               <td>{{ item.message }}</td>
@@ -131,7 +148,7 @@
             <button
               class="btn btn-danger btn-sm float-left"
               style="margin-top:35px;"
-              @click="updateUser"
+              @click="updateUserMercury"
               type="danger"
             >Update</button>
           </div>
@@ -141,11 +158,11 @@
       <el-tab-pane name="5" label="Chat API Config">
         <div class="row">
           <div class="col-md-3">
-            <label class="float-left" style="font-weight: bold">Name</label>
+            <label class="float-left" style="font-weight: bold">Instance</label>
             <el-input v-model="userChat.name"></el-input>
           </div>
           <div class="col-md-3">
-            <label class="float-left" style="font-weight: bold">API</label>
+            <label class="float-left" style="font-weight: bold">Token</label>
             <el-input v-model="userChat.apitoken"></el-input>
           </div>
           <div class="col-md-2">
@@ -171,10 +188,10 @@ import {
   deleteResponse,
   setBulkData,
   getBulkData,
-  getUser,
-  updateUser,
   // added by gardener
-  updateUserChat,
+  getConfigData,
+  updateConfigData,
+  createConfigData
 } from "../utils/actions";
 import { BASE_URL } from "../utils/endpoints";
 
@@ -440,11 +457,25 @@ export default {
       this.refresh();
     },
 
-    //users
-    getUser() {
-      getUser()
+    getConfig() {
+      getConfigData("Mercury")
         .then(response => {
-          this.userMercury = response.data;
+          if (response && response.data && response.data.length > 0) {
+            this.userMercury = response.data[0];
+          }
+        })
+        .catch(error => {
+          this.$notify.error({
+            title: "error",
+            message: error.message
+          });
+        });
+
+      getConfigData("ChatAPI")
+        .then(response => {
+          if (response && response.data && response.data.length > 0) {
+            this.userChat = response.data[0];
+          }
         })
         .catch(error => {
           this.$notify.error({
@@ -454,31 +485,84 @@ export default {
         });
     },
 
-    updateUser() {
-      updateUser(this.user)
-        .then(response => {
-          this.userMercury = response.data;
-          this.tab = "2";
-          this.$notify({
-            title: "error",
-            message: error.message
+    updateUserMercury() {
+      if (this.userMercury.id === undefined) {
+        this.userMercury.type = "Mercury";
+        createConfigData(this.userMercury)
+          .then(response => {
+            this.userMercury = response.data;
+            this.tab = "2";
+            this.$notify({
+              title: "success",
+              message: "Success in create"
+            });
+          })
+          .catch(error => {
+            this.$notify.error({
+              title: "error",
+              message: error.message
+            });
           });
-        })
-        .catch(error => {
-          this.$notify.error({
-            title: "error",
-            message: error.message
+      } else {
+        updateConfigData(this.userMercury)
+          .then(response => {
+            this.userMercury = response.data;
+            this.tab = "2";
+            this.$notify({
+              title: "success",
+              message: "Success in update"
+            });
+          })
+          .catch(error => {
+            this.$notify.error({
+              title: "error",
+              message: error.message
+            });
           });
-        });
+      }
     },
 
     updateUserChat() {
-
-    }
+      if (this.userChat.id === undefined) {
+        this.userChat.type = "ChatAPI";
+        createConfigData(this.userChat)
+          .then(response => {
+            this.userChat = response.data;
+            this.tab = "2";
+            this.$notify({
+              title: "success",
+              message: "Success in create"
+            });
+          })
+          .catch(error => {
+            this.$notify.error({
+              title: "error",
+              message: error.message
+            });
+          });
+      } else {
+        updateConfigData(this.userChat)
+          .then(response => {
+            this.userChat = response.data;
+            this.tab = "2";
+            this.$notify({
+              title: "success",
+              message: "Success in update"
+            });
+          })
+          .catch(error => {
+            this.$notify.error({
+              title: "error",
+              message: error.message
+            });
+          });
+      }
+    },
   },
+
   mounted() {
     this.refresh();
-    this.getUser();
+    this.getConfig();
     this.getAllBulkData();
   }
 };
