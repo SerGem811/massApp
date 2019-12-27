@@ -8,7 +8,6 @@ import {
 
 
 export function setResponse (response) {
-
   return axios({
     method: 'POST',
     url: REPONSES_URL,

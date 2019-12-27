@@ -2,7 +2,7 @@
   <div class="form-container">
     <el-tabs v-model="tab" style="min-height:400px;margin-top:30px;">
       <el-tab-pane name="2" label="Auto Resposta">
-        <el-form>
+        <div>
           <div class="row">
             <div class="col-md-3">
               <label class="float-left" style="font-weight: bold;">Nome</label>
@@ -39,14 +39,13 @@
               >Update</button>
             </div>
           </div>
-          <el-form-item style="float:left;"></el-form-item>
-        </el-form>
+        </div>
 
         <table class="table table-striped">
           <thead class="thead-dark">
             <tr>
               <th style="width: 5%" scope="col">Id</th>
-              <th style="width: 10%"></th>
+              <th style="width: 20%"></th>
               <th style="width: 10%" scope="col">Name</th>
               <th style="width: 10%" scope="col">Trigger</th>
               <th style="width: 20%" scope="col">Resposta</th>
@@ -54,7 +53,7 @@
             </tr>
           </thead>
           <draggable v-model="responses" tag="tbody" @update="moved">
-            <tr v-for="item in responses" :key="item.name">
+            <tr v-for="item in responses" :key="item.name" v-bind:class="{'tr-blocked' : item.blocked}">
               <td scope="row">{{ item.id }}</td>
               <td>
                 <button
@@ -96,9 +95,11 @@
                     type="danger"
                     size="small"
                   >
-                    <i class="el-icon-delete"></i>
+                    <i class="el-icon-check" v-if="item.blocked"></i>
+                    <i class="el-icon-close" v-if="!item.blocked"></i>
                   </el-button>
                 </el-popconfirm>
+
               </td>
               <td>{{ item.name }}</td>
               <td>{{ item.message }}</td>
@@ -558,6 +559,38 @@ export default {
           });
       }
     },
+
+    updateBlock(id) {
+      var v = this.responses.find(x => x.id == id);
+      if(v) {
+        v.blocked = !v.blocked;
+
+        updateResponse(id, v)
+        .then(response => {
+          this.refresh();
+          this.$notify({
+            title: "Success",
+            message: "Response was updated.",
+            type: "success"
+          });
+          this.response = {
+            id: "",
+            name: "",
+            response: "",
+            message: ""
+          };
+
+          this.activeUpdate = false;
+          this.activeSave = true;
+        })
+        .catch(error => {
+          this.$notify.error({
+            title: "error",
+            message: error.message
+          });
+        });
+      }
+    }
   },
 
   mounted() {
@@ -580,5 +613,12 @@ export default {
 }
 td {
   width: 90px;
+}
+.table td {
+  padding: 5px;
+}
+
+.tr-blocked {
+  background-color: #888!important;
 }
 </style>
