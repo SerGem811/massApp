@@ -159,7 +159,7 @@
       <el-tab-pane name="5" label="Chat API Config">
         <div class="row">
           <div class="col-md-3">
-            <label class="float-left" style="font-weight: bold">Instance</label>
+            <label class="float-left" style="font-weight: bold">Api URL</label>
             <el-input v-model="userChat.name"></el-input>
           </div>
           <div class="col-md-3">
@@ -549,14 +549,15 @@ export default {
             this.userChat = response.data;
             this.tab = "2";
             this.$notify({
-              title: "success",
-              message: "Success in update"
+              title: "Success",
+              message: "Success in update",
+              type: "success"
             });
           })
           .catch(error => {
             this.$notify.error({
               title: "error",
-              message: error.message
+              message: error.message,
             });
           });
       }
@@ -587,8 +588,8 @@ export default {
         })
         .catch(error => {
           this.$notify.error({
-            title: "error",
-            message: error.message
+            title: "Error",
+            message: error.message,
           });
         });
       }
