@@ -111,7 +111,6 @@ export function updateConfigData (data) {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
-      'Authorization': `${localStorage.getItem('auth._token.local')}`
     },
     data
   })

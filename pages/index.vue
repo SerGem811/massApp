@@ -494,8 +494,9 @@ export default {
             this.userMercury = response.data;
             this.tab = "2";
             this.$notify({
-              title: "success",
-              message: "Success in create"
+              title: "Success",
+              message: "Success in create",
+              type: "success"
             });
           })
           .catch(error => {
@@ -531,8 +532,9 @@ export default {
             this.userChat = response.data;
             this.tab = "2";
             this.$notify({
-              title: "success",
-              message: "Success in create"
+              title: "Success",
+              message: "Success in create",
+              type: "success"
             });
           })
           .catch(error => {
