@@ -2,11 +2,11 @@
   <section>
     <div class="row m-t-30px">
       <div class="col-md-4">
-        <label class="float-left" style="font-weight: bold">Name</label>
+        <label class="float-left" style="font-weight: bold">webhook URL</label>
         <el-input v-model="config.name"></el-input>
       </div>
       <div class="col-md-4">
-        <label class="float-left" style="font-weight: bold">API</label>
+        <label class="float-left" style="font-weight: bold">Token API</label>
         <el-input v-model="config.apitoken"></el-input>
       </div>
       <div class="col-md-2">

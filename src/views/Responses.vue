@@ -62,11 +62,11 @@
                 <!-- Delete button -->
                 <el-popconfirm
                   @onConfirm="deleteResponse(item.id)"
-                  confirmButtonText="OK"
-                  cancelButtonText="No, Thanks"
+                  confirmButtonText="Sim"
+                  cancelButtonText="Não"
                   icon="el-icon-info"
                   iconColor="red"
-                  title="Are you sure to delete this?"
+                  title="Quer deletar?"
                 >
                   <el-button
                     slot="reference"
@@ -80,8 +80,8 @@
                 <!-- Block / Unblock item -->
                 <el-popconfirm
                   @onConfirm="updateBlock(item.id)"
-                  confirmButtonText="OK"
-                  cancelButtonText="Cancel"
+                  confirmButtonText="Sim"
+                  cancelButtonText="Não"
                   icon="el-icon-info"
                   iconColor="red"
                   title="Quer mesmo ativar este gatilho?"
@@ -89,17 +89,17 @@
                 >
                   <el-button
                     slot="reference"
-                    class="btn-success btn btn-sm m-l-5"
-                    type="success"
+                    class="btn-danger btn btn-sm m-l-5"
+                    type="danger"
                     size="small"
                   >
-                    <i class="el-icon-check"></i>
+                    <span>off</span>
                   </el-button>
                 </el-popconfirm>
                 <el-popconfirm
                   @onConfirm="updateBlock(item.id)"
-                  confirmButtonText="OK"
-                  cancelButtonText="Cancel"
+                  confirmButtonText="Sim"
+                  cancelButtonText="Não"
                   icon="el-icon-info"
                   iconColor="red"
                   title="Tem certeza que quer desativar este gatilho?"
@@ -107,11 +107,11 @@
                 >
                   <button
                     slot="reference"
-                    class="btn-danger btn btn-sm m-l-5"
-                    type="danger"
+                    class="btn-success btn btn-sm m-l-5"
+                    type="success"
                     size="small"
                   >
-                    <i class="el-icon-close"></i>
+                    <span>on</span>
                   </button>
                 </el-popconfirm>
               </td>
