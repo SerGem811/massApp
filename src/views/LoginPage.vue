@@ -54,11 +54,25 @@ export default {
       if (username && password) {
         login(username, password)
           .then(response => {
-            localStorage.setItem(
-              "userMass",
-              JSON.stringify(response.data.user)
-            );
-            router.push("/");
+            if (response.status === 200) {
+              if (response.data.user.confirmed === true) {
+                localStorage.setItem(
+                  "userMass",
+                  JSON.stringify(response.data.user)
+                );
+                router.push("/");
+              } else {
+                this.$notify.warning({
+                  title: "error",
+                  message: "Your account is not activated yet."
+                });
+              }
+            } else {
+              this.$notify.error({
+                title: "Error",
+                message: "Cannot login with this credential"
+              });
+            }
           })
           .catch(() => {
             this.$notify.error({
