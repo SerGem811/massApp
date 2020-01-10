@@ -19,6 +19,9 @@
 .m-r-10 {
   margin-right: 10px;
 }
+.m-b-5 {
+  margin-bottom: 5px;
+}
 .center-item {
   display: flex;
   justify-content: center;

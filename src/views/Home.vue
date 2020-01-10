@@ -18,12 +18,16 @@
               <BulkData />
             </el-tab-pane>
 
-            <el-tab-pane name="3" label="Mercury API Config">
+            <!-- <el-tab-pane name="3" label="Mercury API Config">
               <MercuryAPIConfig />
             </el-tab-pane>
 
             <el-tab-pane name="4" label="Chat API Config">
               <ChatAPIConfig />
+            </el-tab-pane> -->
+
+            <el-tab-pane name="5" label="Configuration">
+              <APIConfig />
             </el-tab-pane>
           </el-tabs>
         </div>
@@ -34,8 +38,9 @@
 <script>
 import Responses from "./Responses";
 import BulkData from "./BulkData";
-import MercuryAPIConfig from "./MercuryAPIConfig";
-import ChatAPIConfig from "./ChatAPIConfig";
+// import MercuryAPIConfig from "./MercuryAPIConfig";
+// import ChatAPIConfig from "./ChatAPIConfig";
+import APIConfig from "./APIConfig";
 
 export default {
   data() {
@@ -48,8 +53,9 @@ export default {
   components: {
     Responses,
     BulkData,
-    MercuryAPIConfig,
-    ChatAPIConfig
+    // MercuryAPIConfig,
+    // ChatAPIConfig,
+    APIConfig
   },
   mounted() {
     const v = localStorage.getItem('userMass');

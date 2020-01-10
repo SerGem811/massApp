@@ -153,3 +153,36 @@ export function updateConfigDataService(data) {
     data
   })
 }
+
+export function deleteConfigDataService(data) {
+  return axios({
+    method: 'DELETE',
+    url: `${BASE_URL}/senderdata/${data.id}`,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  });
+}
+
+export function getAllSenderdata() {
+  return axios ({
+    method: 'GET',
+    url: `${BASE_URL}/senderdata`,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+export function getSenderdata(userid) {
+  return axios({
+    method: 'GET',
+    url: `${BASE_URL}/senderdata?user=` + userid,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  });
+}

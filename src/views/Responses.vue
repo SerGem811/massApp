@@ -11,7 +11,13 @@
       </div>
       <div class="col-md-4 form-group">
         <label class="font-bold">Resposta</label>
-        <VueEmoji ref="emoji" width="100%" height="100" @input="onInput" :value="response.response" />
+        <VueEmoji
+          ref="emoji"
+          width="100%"
+          height="100"
+          @input="onInput"
+          :value="response.response"
+        />
       </div>
       <div class="col-md-2 form-group">
         <button
@@ -27,6 +33,26 @@
           @click="updateResponse"
           type="danger"
         >Update</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3">
+        <span class="float-right font-bold m-t-5">Phone number</span>
+      </div>
+      <div class="col-md-3">
+        <select class="form-control">
+          <option v-for="item in configs" :key="item.id">{{item.phone}}</option>
+        </select>
+      </div>
+      <div class="col-md-3"></div>
+      <div class="col-md-3">
+        <button
+          type="success"
+          class="btn-success btn m-r-10 float-right"
+          data-toggle="modal"
+          data-target="#responseModal"
+        >Add</button>
       </div>
     </div>
     <div class="row">
@@ -126,6 +152,66 @@
         </table>
       </div>
     </div>
+
+    <div
+      class="modal fade"
+      id="responseModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="Resposta"
+      aria-hidden="true"
+      ref="responseModal"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add/Edit Resposta</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+                <label for="response-name" class="col-form-label">Phone</label>
+                <input type="text" class="form-control" id="response-name" v-model="config.phone" />
+                <div
+                  v-if="submitted && !config.phone"
+                  class="input-required"
+                >Phone number is required</div>
+              </div>
+              <div class="form-group">
+                <label for="config-type" class="col-form-label">Type</label>
+                <select class="form-control" v-model="config.Type">
+                  <option value="MercuryAPI">MercuryAPI</option>
+                  <option value="ChatAPI">ChatAPI</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="config-endpoint" class="col-form-label">Endpoint</label>
+                <input type="text" class="form-control" id="config-endpoint" v-model="config.name" />
+                <div
+                  v-if="submitted && !config.name"
+                  class="input-required"
+                >Endpoint is required</div>
+              </div>
+              <div class="form-group">
+                <label for="config-token" class="col-form-label">API token</label>
+                <input type="text" class="form-control" id="config-token" v-model="config.apitoken" />
+                <div
+                  v-if="submitted && !config.apitoken"
+                  class="input-required"
+                >API token is required</div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" @click="updateConfig">Save changes</button>
+            <button type="button" class="btn btn-secondary" @click="closeConfigModal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -155,7 +241,21 @@ export default {
         count: 2,
         pageSize: 100,
         currentPage: 1
-      }
+      },
+      configs: [
+        {
+          id: 1,
+          phone: "123456789"
+        },
+        {
+          id: 2,
+          phone: "312384821"
+        },
+        {
+          id: 3,
+          phone: "182837420"
+        }
+      ],
     };
   },
 
@@ -294,17 +394,16 @@ export default {
     },
 
     showSuccessNotification(message) {
-      this.$notify({
+      this.$notify.success({
         title: "Success",
-        message: message,
-        type: "success"
+        message: message
       });
     },
 
     showFailedNotification(message) {
       this.$notify.error({
         title: "Failed",
-        message: message,
+        message: message
       });
     }
   },
@@ -319,7 +418,8 @@ export default {
 td {
   width: 90px;
 }
-.table td, th {
+.table td,
+th {
   padding: 5px;
   text-align: center;
 }
