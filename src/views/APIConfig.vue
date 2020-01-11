@@ -8,6 +8,7 @@
             class="btn-success btn m-r-10"
             data-toggle="modal"
             data-target="#configModal"
+            @click="addConfig"
           >Add</button>
         </div>
       </div>
@@ -27,7 +28,7 @@
           </thead>
           <tr v-for="item in configs" :key="item.id">
             <td>{{item.phone}}</td>
-            <td>{{item.Type}}</td>
+            <td>{{item.type}}</td>
             <td>{{item.name}}</td>
             <td>{{item.apitoken}}</td>
             <td v-if="user.role.type=='admin'">{{item.user.username}}</td>
@@ -96,18 +97,16 @@
               </div>
               <div class="form-group">
                 <label for="config-type" class="col-form-label">Type</label>
-                <select class="form-control" v-model="config.Type">
+                <select class="form-control" v-model="config.type">
                   <option value="MercuryAPI">MercuryAPI</option>
                   <option value="ChatAPI">ChatAPI</option>
+                  <option value="WrapperAPI">WrapperAPI</option>
                 </select>
               </div>
               <div class="form-group">
                 <label for="config-endpoint" class="col-form-label">Endpoint</label>
                 <input type="text" class="form-control" id="config-endpoint" v-model="config.name" />
-                <div
-                  v-if="submitted && !config.name"
-                  class="input-required"
-                >Endpoint is required</div>
+                <div v-if="submitted && !config.name" class="input-required">Endpoint is required</div>
               </div>
               <div class="form-group">
                 <label for="config-token" class="col-form-label">API token</label>
@@ -140,18 +139,14 @@ import {
 } from "../services/service";
 
 export default {
+  name: "APIConfig",
+  props: ["user"],
   data() {
     return {
       configs: [],
-      user: {
-        username: "",
-        email: "",
-        provider: "",
-        role: ""
-      },
       config: {
         phone: "",
-        Type: "MercuryAPI",
+        type: "MercuryAPI",
         name: "",
         apitoken: ""
       },
@@ -159,8 +154,17 @@ export default {
     };
   },
   methods: {
+    addConfig() {
+      this.config = {
+        phone: "",
+        type: "MercuryAPI",
+        name: "",
+        apitoken: ""
+      };
+    },
+
     showConfigModal(item) {
-      this.config = {...item};
+      this.config = { ...item };
     },
 
     closeConfigModal() {
@@ -172,7 +176,7 @@ export default {
       this.submitted = true;
       if (
         this.config.phone &&
-        this.config.Type &&
+        this.config.type &&
         this.config.name &&
         this.config.apitoken
       ) {
@@ -183,7 +187,7 @@ export default {
               if (response.status === 200) {
                 this.config = {
                   phone: "",
-                  Type: "MercuryAPI",
+                  type: "MercuryAPI",
                   name: "",
                   apitoken: ""
                 };
@@ -203,7 +207,7 @@ export default {
               if (response.status === 200) {
                 this.config = {
                   phone: "",
-                  Type: "MercuryAPI",
+                  type: "MercuryAPI",
                   name: "",
                   apitoken: ""
                 };
@@ -281,13 +285,6 @@ export default {
   },
 
   mounted() {
-    // user information
-    const u = localStorage.getItem("userMass");
-    if (u) {
-      this.user = JSON.parse(u);
-    } else {
-      this.user = {};
-    }
     // load configurations
     this.refreshPage();
   }

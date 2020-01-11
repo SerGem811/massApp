@@ -1,48 +1,12 @@
 <template>
   <section>
     <div class="row">
-      <div class="col-md-3 form-group">
-        <label class="font-bold">Nome</label>
-        <el-input placeholder="Nome" v-model="response.name"></el-input>
-      </div>
-      <div class="col-md-3 form-group">
-        <label class="font-bold">Gatilho (trigger)</label>
-        <el-input placeholder="trigger" v-model="response.message"></el-input>
-      </div>
-      <div class="col-md-4 form-group">
-        <label class="font-bold">Resposta</label>
-        <VueEmoji
-          ref="emoji"
-          width="100%"
-          height="100"
-          @input="onInput"
-          :value="response.response"
-        />
-      </div>
-      <div class="col-md-2 form-group">
-        <button
-          class="float-left btn-danger btn-sm btn"
-          style="margin-top: 40px;"
-          v-if="!activeState"
-          @click="addResponse"
-          type="danger"
-        >Submit</button>
-        <button
-          class="float-left mt-5 btn-danger btn btn-sm"
-          v-if="activeState"
-          @click="updateResponse"
-          type="danger"
-        >Update</button>
-      </div>
-    </div>
-
-    <div class="row">
       <div class="col-md-3">
         <span class="float-right font-bold m-t-5">Phone number</span>
       </div>
       <div class="col-md-3">
-        <select class="form-control">
-          <option v-for="item in configs" :key="item.id">{{item.phone}}</option>
+        <select class="form-control m-b-5" @change="onChangeNumber($event)">
+          <option v-for="item in configs" :key="item.id" :value="item.id">{{item.phone}}</option>
         </select>
       </div>
       <div class="col-md-3"></div>
@@ -52,6 +16,7 @@
           class="btn-success btn m-r-10 float-right"
           data-toggle="modal"
           data-target="#responseModal"
+          :disabled="senderdata==-1"
         >Add</button>
       </div>
     </div>
@@ -72,7 +37,7 @@
             <tr
               v-for="item in responses"
               :key="item.id"
-              v-bind:class="{'tr-blocked' : item.Blocked}"
+              v-bind:class="{'tr-blocked' : item.blocked}"
             >
               <td scope="row">{{ item.order }}</td>
               <td>
@@ -111,7 +76,7 @@
                   icon="el-icon-info"
                   iconColor="red"
                   title="Quer mesmo ativar este gatilho?"
-                  v-if="item.Blocked"
+                  v-if="item.blocked"
                 >
                   <el-button
                     slot="reference"
@@ -129,7 +94,7 @@
                   icon="el-icon-info"
                   iconColor="red"
                   title="Tem certeza que quer desativar este gatilho?"
-                  v-if="!item.Blocked"
+                  v-if="!item.blocked"
                 >
                   <button
                     slot="reference"
@@ -173,41 +138,39 @@
           <div class="modal-body">
             <form>
               <div class="form-group">
-                <label for="response-name" class="col-form-label">Phone</label>
-                <input type="text" class="form-control" id="response-name" v-model="config.phone" />
-                <div
-                  v-if="submitted && !config.phone"
-                  class="input-required"
-                >Phone number is required</div>
+                <label for="response-name" class="col-form-label">Name</label>
+                <input type="text" class="form-control" id="response-name" v-model="response.name" />
+                <div v-if="submitted && !response.name" class="input-required">Name is required</div>
               </div>
               <div class="form-group">
-                <label for="config-type" class="col-form-label">Type</label>
-                <select class="form-control" v-model="config.Type">
-                  <option value="MercuryAPI">MercuryAPI</option>
-                  <option value="ChatAPI">ChatAPI</option>
-                </select>
+                <label for="response-message" class="col-form-label">Trigger</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="response-message"
+                  v-model="response.message"
+                />
+                <div v-if="submitted && !response.message" class="input-required">Trigger is required</div>
               </div>
               <div class="form-group">
-                <label for="config-endpoint" class="col-form-label">Endpoint</label>
-                <input type="text" class="form-control" id="config-endpoint" v-model="config.name" />
+                <label for="response-message" class="col-form-label">Resposta</label>
+                <VueEmoji
+                  ref="emoji"
+                  width="100%"
+                  height="100"
+                  @input="onInput"
+                  :value="response.response"
+                />
                 <div
-                  v-if="submitted && !config.name"
+                  v-if="submitted && !response.response"
                   class="input-required"
-                >Endpoint is required</div>
-              </div>
-              <div class="form-group">
-                <label for="config-token" class="col-form-label">API token</label>
-                <input type="text" class="form-control" id="config-token" v-model="config.apitoken" />
-                <div
-                  v-if="submitted && !config.apitoken"
-                  class="input-required"
-                >API token is required</div>
+                >Response is required</div>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary" @click="updateConfig">Save changes</button>
-            <button type="button" class="btn btn-secondary" @click="closeConfigModal">Close</button>
+            <button type="button" class="btn btn-primary" @click="updateResponse">Save changes</button>
+            <button type="button" class="btn btn-secondary" @click="closeResponseModal">Close</button>
           </div>
         </div>
       </div>
@@ -218,14 +181,20 @@
 <script>
 import VueEmoji from "emoji-vue";
 import draggable from "vuedraggable";
+import $ from "jquery";
 import {
   getAllResponses,
   addResponseService,
   updateResponseService,
   countResponsesService,
-  deleteResponseService
+  deleteResponseService,
+  getAllSenderdata,
+  getSenderdata
 } from "../services/service";
+
 export default {
+  name: "Responses",
+  props: ["user"],
   data() {
     return {
       myText: "",
@@ -233,29 +202,18 @@ export default {
         id: "",
         name: "",
         response: "",
-        message: ""
+        message: "",
+        phone: ""
       },
       responses: [],
-      activeState: 0,
       pagination: {
         count: 2,
         pageSize: 100,
         currentPage: 1
       },
-      configs: [
-        {
-          id: 1,
-          phone: "123456789"
-        },
-        {
-          id: 2,
-          phone: "312384821"
-        },
-        {
-          id: 3,
-          phone: "182837420"
-        }
-      ],
+      configs: [],
+      submitted: false,
+      senderdata: -1
     };
   },
 
@@ -270,10 +228,11 @@ export default {
         this.response.response = event.data;
       }
     },
+
     // add new response to the database
     addResponse() {
       // add new response
-      this.response.Blocked = false;
+      this.response.blocked = false;
 
       // get last order
       let maxOrder = 0;
@@ -281,60 +240,69 @@ export default {
         if (obj.order > maxOrder) maxOrder = obj.order;
       });
       this.response.order = maxOrder + 1;
+      this.response.senderdata = this.senderdata;
       addResponseService(this.response)
         .then(response => {
           //notification
           if (response.status === 200) {
+            this.closeResponseModal();
             this.refreshPage();
-            this.showSuccessNotification("New response created");
+            this.showSuccessMessage("New response created");
           } else {
-            this.showFailedNotification("Can't add new response");
+            this.showFailMessage("Can't add new response");
           }
         })
         .catch(error => {
-          this.showFailedNotification(error.message);
+          this.showFailMessage(error.message);
         });
     },
 
     // update response
+    // when click save changes button in dialog
     updateResponse() {
-      updateResponseService(this.response.id, this.response)
-        .then(response => {
-          if (response.status === 200) {
-            this.showSuccessNotification("Response is updated");
-            this.activeState = 0;
-            this.response = {
-              id: "",
-              name: "",
-              response: "",
-              message: ""
-            };
-          } else {
-            this.showFailedNotification("Can't update the response");
-          }
-        })
-        .catch(error => {
-          this.showFailedNotification(error.message);
-        });
+      this.submitted = true;
+      if (this.response.id) {
+        updateResponseService(this.response.id, this.response)
+          .then(response => {
+            if (response.status === 200) {
+              this.showSuccessMessage("Response is updated");
+              this.response = {
+                id: "",
+                name: "",
+                response: "",
+                message: ""
+              };
+              this.closeResponseModal();
+              this.refreshPage();
+            } else {
+              this.showFailMessage("Can't update the response");
+            }
+          })
+          .catch(error => {
+            this.showFailMessage(error.message);
+          });
+      } else {
+        this.addResponse();
+      }
     },
 
+    // when click edit in table
     updateItem(data) {
-      this.response = data;
-      this.activeState = 1;
+      this.showResponseModal(data);
     },
 
     deleteResponse(id) {
       deleteResponseService(id)
         .then(response => {
           if (response.status === 200) {
-            this.showSuccessNotification("Response is successfully removed");
+            this.showSuccessMessage("Response is successfully removed");
             this.refreshPage();
           } else {
-            this.showFailedNotification("Can't remove the response");
+            this.showFailMessage("Can't remove the response");
           }
         })
         .catch(error => {
-          this.showFailedNotification(error.message);
+          this.showFailMessage(error.message);
         });
     },
 
@@ -343,27 +311,27 @@ export default {
         register.order = item;
         updateResponseService(register.id, register);
       });
-      this.showSuccessNotification("Response order updated");
+      this.showSuccessMessage("Response order updated");
     },
 
     updateBlock(id) {
       let r = this.responses.find(x => x.id == id);
       if (r) {
-        r.Blocked = !r.Blocked;
+        r.blocked = !r.blocked;
         updateResponseService(id, r)
           .then(response => {
             if (response.status === 200) {
-              if (r.Blocked) {
-                this.showSuccessNotification("Response is now blocked");
+              if (r.blocked) {
+                this.showSuccessMessage("Response is now blocked");
               } else {
-                this.showSuccessNotification("response is now activated");
+                this.showSuccessMessage("response is now activated");
               }
             } else {
-              this.showSuccessNotification("Can't update the response");
+              this.showSuccessMessage("Can't update the response");
             }
           })
           .catch(error => {
-            this.showFailedNotification(error.message);
+            this.showFailMessage(error.message);
           });
       }
     },
@@ -375,41 +343,125 @@ export default {
           this.pagination.count = Math.ceil(res / this.pagination.pageSize);
         })
         .catch(error => {
-          this.showFailedNotification(error.message);
+          this.showFailMessage(error.message);
         });
     },
 
     refreshPage() {
-      getAllResponses(this.pagination)
-        .then(response => {
-          if (response.status == 200) {
-            this.responses = response.data;
-          }
-        })
-        .catch(error => {
-          this.showFailedNotification(error.message);
-        });
-
-      this.updateCount();
+      if (this.senderdata !== -1) {
+        getAllResponses(this.pagination, this.senderdata)
+          .then(response => {
+            if (response.status == 200) {
+              this.responses = response.data;
+              this.updateCount();
+            }
+          })
+          .catch(error => {
+            this.showFailMessage(error.message);
+          });
+      } else {
+        this.responses = [];
+      }
     },
 
-    showSuccessNotification(message) {
+    showSuccessMessage(message) {
       this.$notify.success({
         title: "Success",
         message: message
       });
     },
 
-    showFailedNotification(message) {
+    showFailMessage(message) {
       this.$notify.error({
         title: "Failed",
         message: message
       });
+    },
+
+    showResponseModal(item) {
+      this.response = { ...item };
+      $("#responseModal").modal("show");
+    },
+
+    closeResponseModal() {
+      this.submitted = false;
+      $("#responseModal").modal("hide");
+      this.emptyResponse();
+    },
+
+    onChangeNumber(event) {
+      this.senderdata = event.target.value;
+      this.refreshPage();
+    },
+
+    emptyConfigs() {
+      this.configs = [
+        {
+          id: -1,
+          phone: "-"
+        }
+      ];
+    },
+    
+    emptyResponse() {
+      this.response = {
+        id: "",
+        name: "",
+        response: "",
+        message: "",
+        phone: ""
+      }
     }
   },
 
   mounted() {
-    this.refreshPage();
+    // load configuration
+    if (this.user.role.type === "admin") {
+      getAllSenderdata()
+        .then(response => {
+          if (response.status === 200) {
+            // this.configs = response.data;
+            if (response.data.length > 0) {
+              this.configs = response.data;
+              this.senderdata = this.configs[0].id;
+            } else {
+              this.emptyConfigs();
+            }
+          } else {
+            this.showFailMessage("Cannot load the configuration data");
+            this.emptyConfigs();
+          }
+        })
+        .catch(error => {
+          this.showFailMessage(error.message);
+          this.emptyConfigs();
+        })
+        .finally(() => {
+          this.refreshPage();
+        })
+    } else {
+      getSenderdata(this.user.id)
+        .then(response => {
+          if (response.status === 200) {
+            if (response.data.length > 0) {
+              this.configs = response.data;
+              this.senderdata = this.configs[0].id;
+            } else {
+              this.emptyConfigs();
+            }
+          } else {
+            this.showFailMessage("Cannot load the configuration data");
+            this.emptyConfigs();
+          }
+        })
+        .catch(error => {
+          this.showFailMessage(error.message);
+          this.emptyConfigs();
+        })
+        .finally(() => {
+          this.refreshPage();
+        })
+    }
   }
 };
 </script>

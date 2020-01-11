@@ -29,16 +29,17 @@ export function register(username, password, email) {
     data: {
       username: username,
       email: email,
-      password: password
+      password: password,
+      confirmed: 0
     }
   });
 }
 
-export function getAllResponses (pagination) {
+export function getAllResponses (pagination, senderdata) {
   let start = (pagination.currentPage * pagination.pageSize) - pagination.pageSize
   let limit = pagination.pageSize
 
-  let url =  BASE_URL + '/responsewapps?_start=' + start + '&_limit=' + limit + '&_sort=order:asc'
+  let url =  BASE_URL + '/responsewapps?senderdata=' + senderdata + '&_start=' + start + '&_limit=' + limit + '&_sort=order:asc'
 
   return axios({
     method: 'GET',
@@ -165,7 +166,7 @@ export function deleteConfigDataService(data) {
   });
 }
 
-export function getAllSenderdata() {
+export async function getAllSenderdata() {
   return axios ({
     method: 'GET',
     url: `${BASE_URL}/senderdata`,
@@ -176,7 +177,7 @@ export function getAllSenderdata() {
   })
 }
 
-export function getSenderdata(userid) {
+export async function getSenderdata(userid) {
   return axios({
     method: 'GET',
     url: `${BASE_URL}/senderdata?user=` + userid,
