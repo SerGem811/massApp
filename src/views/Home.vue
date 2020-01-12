@@ -22,7 +22,9 @@
               <APIConfig v-bind:user="user" />
             </el-tab-pane>
 
-            <el-tab-pane name="6" label="Chat"></el-tab-pane>
+            <el-tab-pane name="6" label="Chat">
+              <Chat />
+            </el-tab-pane>
           </el-tabs>
         </div>
       </div>
@@ -33,7 +35,7 @@
 import Responses from "./Responses";
 import BulkData from "./BulkData";
 import APIConfig from "./APIConfig";
-
+import Chat from "./Chat";
 export default {
   data() {
     return {
@@ -45,7 +47,8 @@ export default {
   components: {
     Responses,
     BulkData,
-    APIConfig
+    APIConfig,
+    Chat
   },
   created() {
     const v = localStorage.getItem("userMass");

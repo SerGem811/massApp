@@ -30,7 +30,7 @@ export function register(username, password, email) {
       username: username,
       email: email,
       password: password,
-      confirmed: 0
+      confirmed: false
     }
   });
 }
