@@ -3,10 +3,13 @@
     <div class="row">
       <div class="col-md-4 left-pane">
         <div class="row left-pane-header">
-          <div class="col-md-6" id="userImg">
-            
+          <div class="col-md-1"></div>
+          <div class="col-md-7 text-align">
+            <select class="form-control m-b-5" @change="onChangeNumber($event)">
+              <option v-for="item in senders" :key="item.id" :value="item.id">{{item.phone}}</option>
+            </select>
           </div>
-          <div class="col-md-6 text-right icons">
+          <div class="col-md-4 right-center-item">
             <span
               @click="gotoHome"
               @mouseover="goConfig = true"
@@ -14,7 +17,7 @@
               class="left-pane-back-config"
             >
               <i class="el-icon-arrow-left"></i>
-              <span v-if="goConfig" class="text-link">Go to configuration</span>
+              <span v-if="goConfig" class="text-link">Go home</span>
             </span>
           </div>
         </div>
@@ -48,14 +51,20 @@
 
 <script>
 import router from "../router/index";
+import {
+  getAllSenderdata,
+  getSenderdata
+} from "../services/service";
 
 export default {
-  props: ["user"],
   data() {
     return {
       goConfig: false,
       nameToSearch: "",
-      filterUsers: []
+      filterUsers: [],
+      senders: [],
+      sender: {},
+      user: {}
     };
   },
   methods: {
@@ -63,13 +72,42 @@ export default {
       router.push("/");
     },
     onSearchName() {},
+    onChangeNumber() {
 
-    loadUser(){
-
-    }
+    },
+    loadUser() {}
   },
   mounted() {
+    // load all user
+    const v = localStorage.getItem("userMass");
+    const user = JSON.parse(v);
+    this.user = user;
 
+    if (this.user.role.type === "admin") {
+        getAllSenderdata()
+          .then(response => {
+            if (response.status === 200) {
+              this.senders = response.data;
+            } else {
+              this.showFailMessage("Cannot load the configuration data");
+            }
+          })
+          .catch(error => {
+            this.showFailMessage(error.message);
+          });
+      } else {
+        getSenderdata(this.user.id)
+          .then(response => {
+            if (response.status === 200) {
+              this.senders = response.data;
+            } else {
+              this.showFailMessage("Cannot load the configuration data");
+            }
+          })
+          .catch(error => {
+            this.showFailMessage(error.message);
+          });
+      }
   }
 };
 </script>

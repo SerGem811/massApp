@@ -26,7 +26,7 @@
               <th style="width: 10%" scope="col"></th>
             </tr>
           </thead>
-          <tr v-for="item in configs" :key="item.id">
+          <tr v-for="item in senders" :key="item.id">
             <td>{{item.phone}}</td>
             <td>{{item.type}}</td>
             <td>{{item.name}}</td>
@@ -143,7 +143,7 @@ export default {
   props: ["user"],
   data() {
     return {
-      configs: [],
+      senders: [],
       config: {
         phone: "",
         type: "MercuryAPI",
@@ -246,7 +246,7 @@ export default {
         getAllSenderdata()
           .then(response => {
             if (response.status === 200) {
-              this.configs = response.data;
+              this.senders = response.data;
             } else {
               this.showFailMessage("Cannot load the configuration data");
             }
@@ -258,7 +258,7 @@ export default {
         getSenderdata(this.user.id)
           .then(response => {
             if (response.status === 200) {
-              this.configs = response.data;
+              this.senders = response.data;
             } else {
               this.showFailMessage("Cannot load the configuration data");
             }

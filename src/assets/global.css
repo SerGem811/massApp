@@ -32,6 +32,12 @@
   align-items: center;
 }
 
+.right-center-item {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 .emoji-vue-textarea {
   text-align: left!important;
 }
