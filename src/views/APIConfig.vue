@@ -101,6 +101,7 @@
                   <option value="MercuryAPI">MercuryAPI</option>
                   <option value="ChatAPI">ChatAPI</option>
                   <option value="WrapperAPI">WrapperAPI</option>
+                  <option value="TelegramAPI">TelegramAPI</option>
                 </select>
               </div>
               <div class="form-group">

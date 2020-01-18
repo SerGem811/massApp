@@ -53,7 +53,8 @@
 import router from "../router/index";
 import {
   getAllSenderdata,
-  getSenderdata
+  getSenderdata,
+  // getContacts
 } from "../services/service";
 
 export default {
@@ -75,7 +76,9 @@ export default {
     onChangeNumber() {
 
     },
-    loadUser() {}
+    // loadUser(senderId) {
+
+    // }
   },
   mounted() {
     // load all user

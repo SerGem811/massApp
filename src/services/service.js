@@ -187,3 +187,12 @@ export async function getSenderdata(userid) {
     }
   });
 }
+
+// export async function getContacts(senderId) {
+//   // get all contracts
+
+// }
+
+// export async function getAllMessages(senderId) {
+
+// }

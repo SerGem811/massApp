@@ -18,11 +18,14 @@
               <BulkData />
             </el-tab-pane>
 
-            <el-tab-pane name="5" label="Configuration">
+            <el-tab-pane name="3" label="Configuration">
               <APIConfig v-bind:user="user" />
             </el-tab-pane>
+            <el-tab-pane name="4" label="Message Massive">
+              
+            </el-tab-pane>
 
-            <el-tab-pane name="6" label="Chat">
+            <el-tab-pane name="5" label="Chat">
               <Chat />
             </el-tab-pane>
           </el-tabs>
