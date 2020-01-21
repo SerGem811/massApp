@@ -45,3 +45,6 @@
 .text-link {
   cursor: pointer;
 }
+.d-flex {
+  display: flex;
+}

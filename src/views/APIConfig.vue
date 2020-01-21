@@ -19,6 +19,7 @@
           <thead class="thead-dark">
             <tr>
               <th style="width: 10%" scope="col">Phone</th>
+              <th style="width: 20%" scope="col">Name</th>
               <th style="width: 10%" scope="col">Type</th>
               <th style="width: 20%" scope="col">Endpoint</th>
               <th style="width: 20%" scope="col">API token</th>
@@ -28,8 +29,9 @@
           </thead>
           <tr v-for="item in senders" :key="item.id">
             <td>{{item.phone}}</td>
-            <td>{{item.type}}</td>
             <td>{{item.name}}</td>
+            <td>{{item.type}}</td>
+            <td>{{item.endpoint}}</td>
             <td>{{item.apitoken}}</td>
             <td v-if="user.role.type=='admin'">{{item.user.username}}</td>
             <td>
@@ -89,31 +91,37 @@
             <form>
               <div class="form-group">
                 <label for="config-phone" class="col-form-label">Phone</label>
-                <input type="text" class="form-control" id="config-phone" v-model="config.phone" />
+                <input type="text" class="form-control" id="config-phone" v-model="senderdata.phone" />
                 <div
-                  v-if="submitted && !config.phone"
+                  v-if="submitted && !senderdata.phone"
                   class="input-required"
                 >Phone number is required</div>
               </div>
               <div class="form-group">
+                <label for="config-name" class="col-form-label">Name</label>
+                <input type="text" class="form-control" id="config-name" v-model="senderdata.name" />
+                <div v-if="submitted && !config.name" class="input-required">Name is required</div>
+              </div>
+              <div class="form-group">
                 <label for="config-type" class="col-form-label">Type</label>
-                <select class="form-control" v-model="config.type">
+                <select class="form-control" v-model="senderdata.type">
                   <option value="MercuryAPI">MercuryAPI</option>
                   <option value="ChatAPI">ChatAPI</option>
                   <option value="WrapperAPI">WrapperAPI</option>
+                  <option value="WhatsOfficialApi">WhatsOfficialApi</option>
                   <option value="TelegramAPI">TelegramAPI</option>
                 </select>
               </div>
               <div class="form-group">
                 <label for="config-endpoint" class="col-form-label">Endpoint</label>
-                <input type="text" class="form-control" id="config-endpoint" v-model="config.name" />
-                <div v-if="submitted && !config.name" class="input-required">Endpoint is required</div>
+                <input type="text" class="form-control" id="config-endpoint" v-model="senderdata.endpoint" />
+                <div v-if="submitted && !senderdata.endpoint" class="input-required">Endpoint is required</div>
               </div>
               <div class="form-group">
                 <label for="config-token" class="col-form-label">API token</label>
-                <input type="text" class="form-control" id="config-token" v-model="config.apitoken" />
+                <input type="text" class="form-control" id="config-token" v-model="senderdata.apitoken" />
                 <div
-                  v-if="submitted && !config.apitoken"
+                  v-if="submitted && !senderdata.apitoken"
                   class="input-required"
                 >API token is required</div>
               </div>
@@ -132,8 +140,6 @@
 <script>
 import $ from "jquery";
 import {
-  getAllSenderdata,
-  getSenderdata,
   updateConfigDataService,
   createConfigDataService,
   deleteConfigDataService
@@ -141,22 +147,22 @@ import {
 
 export default {
   name: "APIConfig",
-  props: ["user"],
+  props: ["user", "senders"],
   data() {
     return {
-      senders: [],
-      config: {
+      senderdata: {
         phone: "",
         type: "MercuryAPI",
         name: "",
-        apitoken: ""
+        apitoken: "",
+        endpoint: ""
       },
       submitted: false
     };
   },
   methods: {
     addConfig() {
-      this.config = {
+      this.senderdata = {
         phone: "",
         type: "MercuryAPI",
         name: "",
@@ -165,7 +171,7 @@ export default {
     },
 
     showConfigModal(item) {
-      this.config = { ...item };
+      this.senderdata = { ...item };
     },
 
     closeConfigModal() {
@@ -176,17 +182,17 @@ export default {
     updateConfig() {
       this.submitted = true;
       if (
-        this.config.phone &&
-        this.config.type &&
-        this.config.name &&
-        this.config.apitoken
+        this.senderdata.phone &&
+        this.senderdata.type &&
+        this.senderdata.name &&
+        this.senderdata.apitoken
       ) {
-        if (this.config.id === undefined) {
-          this.config.user = this.user.id;
-          createConfigDataService(this.config)
+        if (this.senderdata.id === undefined) {
+          this.senderdata.user = this.user.id;
+          createConfigDataService(this.senderdata)
             .then(response => {
               if (response.status === 200) {
-                this.config = {
+                this.senderdata = {
                   phone: "",
                   type: "MercuryAPI",
                   name: "",
@@ -203,10 +209,10 @@ export default {
               this.showFailMessage(error.message);
             });
         } else {
-          updateConfigDataService(this.config)
+          updateConfigDataService(this.senderdata)
             .then(response => {
               if (response.status === 200) {
-                this.config = {
+                this.senderdata = {
                   phone: "",
                   type: "MercuryAPI",
                   name: "",
@@ -243,31 +249,7 @@ export default {
     refreshPage() {
       this.closeConfigModal();
       this.submitted = false;
-      if (this.user.role.type === "admin") {
-        getAllSenderdata()
-          .then(response => {
-            if (response.status === 200) {
-              this.senders = response.data;
-            } else {
-              this.showFailMessage("Cannot load the configuration data");
-            }
-          })
-          .catch(error => {
-            this.showFailMessage(error.message);
-          });
-      } else {
-        getSenderdata(this.user.id)
-          .then(response => {
-            if (response.status === 200) {
-              this.senders = response.data;
-            } else {
-              this.showFailMessage("Cannot load the configuration data");
-            }
-          })
-          .catch(error => {
-            this.showFailMessage(error.message);
-          });
-      }
+      this.$emit("senderUpdated");
     },
 
     showFailMessage(message) {

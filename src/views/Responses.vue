@@ -1,22 +1,24 @@
 <template>
   <section>
     <div class="row">
-      <div class="col-md-3">
-        <span class="float-right font-bold m-t-5">Phone number</span>
+      <div class="col-md-2">
+        <span class="float-right font-bold m-t-5">Phone number :</span>
       </div>
       <div class="col-md-3">
         <select class="form-control m-b-5" @change="onChangeNumber($event)">
-          <option v-for="item in configs" :key="item.id" :value="item.id">{{item.phone}}</option>
+          <option v-for="item in senders" :key="item.id" :value="item.id">{{item.phone}}</option>
         </select>
       </div>
-      <div class="col-md-3"></div>
-      <div class="col-md-3">
+      <div class="col-md-5">
+        <span class="font-bold d-flex m-t-5">Name : {{senderdata? senderdata.name : ""}}</span>
+      </div>
+      <div class="col-md-2">
         <button
           type="success"
           class="btn-success btn m-r-10 float-right"
           data-toggle="modal"
           data-target="#responseModal"
-          :disabled="senderdata==-1"
+          :disabled="senderdata==null"
         >Add</button>
       </div>
     </div>
@@ -150,7 +152,10 @@
                   id="response-message"
                   v-model="response.message"
                 />
-                <div v-if="submitted && !response.message" class="input-required">Trigger is required</div>
+                <div
+                  v-if="submitted && !response.message"
+                  class="input-required"
+                >Trigger is required</div>
               </div>
               <div class="form-group">
                 <label for="response-message" class="col-form-label">Resposta</label>
@@ -187,14 +192,12 @@ import {
   addResponseService,
   updateResponseService,
   countResponsesService,
-  deleteResponseService,
-  getAllSenderdata,
-  getSenderdata
+  deleteResponseService
 } from "../services/service";
 
 export default {
   name: "Responses",
-  props: ["user"],
+  props: ["user", "senders"],
   data() {
     return {
       myText: "",
@@ -211,9 +214,8 @@ export default {
         pageSize: 100,
         currentPage: 1
       },
-      configs: [],
       submitted: false,
-      senderdata: -1
+      senderdata: null
     };
   },
 
@@ -240,7 +242,7 @@ export default {
         if (obj.order > maxOrder) maxOrder = obj.order;
       });
       this.response.order = maxOrder + 1;
-      this.response.senderdata = this.senderdata;
+      this.response.senderdata = this.senderdata.id;
       addResponseService(this.response)
         .then(response => {
           //notification
@@ -348,8 +350,8 @@ export default {
     },
 
     refreshPage() {
-      if (this.senderdata !== -1) {
-        getAllResponses(this.pagination, this.senderdata)
+      if (this.senderdata !== null) {
+        getAllResponses(this.pagination, this.senderdata.id)
           .then(response => {
             if (response.status == 200) {
               this.responses = response.data;
@@ -390,19 +392,16 @@ export default {
     },
 
     onChangeNumber(event) {
-      this.senderdata = event.target.value;
+      const sender = this.senders.find(x => x.id == event.target.value);
+      if (sender) {
+        this.senderdata = sender;
+      } else {
+        this.senderdata = null;
+      }
+
       this.refreshPage();
     },
 
-    emptyConfigs() {
-      this.configs = [
-        {
-          id: -1,
-          phone: "-"
-        }
-      ];
-    },
-    
     emptyResponse() {
       this.response = {
         id: "",
@@ -410,57 +409,38 @@ export default {
         response: "",
         message: "",
         phone: ""
-      }
+      };
     }
   },
 
   mounted() {
     // load configuration
-    if (this.user.role.type === "admin") {
-      getAllSenderdata()
-        .then(response => {
-          if (response.status === 200) {
-            // this.configs = response.data;
-            if (response.data.length > 0) {
-              this.configs = response.data;
-              this.senderdata = this.configs[0].id;
-            } else {
-              this.emptyConfigs();
-            }
-          } else {
-            this.showFailMessage("Cannot load the configuration data");
-            this.emptyConfigs();
-          }
-        })
-        .catch(error => {
-          this.showFailMessage(error.message);
-          this.emptyConfigs();
-        })
-        .finally(() => {
-          this.refreshPage();
-        })
+    if (this.senders && this.senders.length > 0) {
+      if (this.senders[0].id != -1) {
+        this.senderdata = this.senders[0];
+      } else {
+        this.senderdata = null;
+      }
     } else {
-      getSenderdata(this.user.id)
-        .then(response => {
-          if (response.status === 200) {
-            if (response.data.length > 0) {
-              this.configs = response.data;
-              this.senderdata = this.configs[0].id;
-            } else {
-              this.emptyConfigs();
-            }
+      this.senderdata = null;
+    }
+    this.refreshPage();
+  },
+  watch: {
+    senders: {
+      immediate: true,
+      handler() {
+        if (this.senders && this.senders.length > 0) {
+          if (this.senders[0].id != -1) {
+            this.senderdata = this.senders[0];
           } else {
-            this.showFailMessage("Cannot load the configuration data");
-            this.emptyConfigs();
+            this.senderdata = null;
           }
-        })
-        .catch(error => {
-          this.showFailMessage(error.message);
-          this.emptyConfigs();
-        })
-        .finally(() => {
-          this.refreshPage();
-        })
+        } else {
+          this.senderdata = null;
+        }
+        this.refreshPage();
+      }
     }
   }
 };
