@@ -76,12 +76,7 @@ export default {
       }
     },
     emptySenders() {
-      this.senders = [
-        {
-          id: -1,
-          phone: "-"
-        }
-      ];
+      this.senders = [];
     },
     updateSenders(response) {
       if (response.status === 200) {

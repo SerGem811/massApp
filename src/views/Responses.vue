@@ -416,11 +416,7 @@ export default {
   mounted() {
     // load configuration
     if (this.senders && this.senders.length > 0) {
-      if (this.senders[0].id != -1) {
-        this.senderdata = this.senders[0];
-      } else {
-        this.senderdata = null;
-      }
+      this.senderdata = this.senders[0];
     } else {
       this.senderdata = null;
     }
@@ -431,11 +427,7 @@ export default {
       immediate: true,
       handler() {
         if (this.senders && this.senders.length > 0) {
-          if (this.senders[0].id != -1) {
-            this.senderdata = this.senders[0];
-          } else {
-            this.senderdata = null;
-          }
+          this.senderdata = this.senders[0];
         } else {
           this.senderdata = null;
         }
