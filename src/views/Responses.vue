@@ -4,12 +4,12 @@
       <div class="col-md-2">
         <span class="float-right font-bold m-t-5">Phone number :</span>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <select class="form-control m-b-5" @change="onChangeNumber($event)">
-          <option v-for="item in senders" :key="item.id" :value="item.id">{{item.phone}}</option>
+          <option v-for="item in senders" :key="item.id" :value="item.id">{{item.phone}} : {{item.type}}</option>
         </select>
       </div>
-      <div class="col-md-5">
+      <div class="col-md-4">
         <span class="font-bold d-flex m-t-5">Name : {{senderdata? senderdata.name : ""}}</span>
       </div>
       <div class="col-md-2">

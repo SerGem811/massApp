@@ -16,15 +16,14 @@
     <div class="row">
       <div class="col-md-12">
         <table class="table table-striped">
-          
             <tr class="thead-dark">
-              <th>Phone</th>
-              <th scope="col">Name</th>
-              <th scope="col">Type</th>
-              <th scope="col">Endpoint</th>
-              <th scope="col">API token</th>
-              <th scope="col" v-if="user.role.type=='admin'">User</th>
-              <th style="width: 100px;" scope="col"></th>
+              <th style="width: 10%" scope="col">Phone</th>
+              <th style="width: 10%" scope="col">Name</th>
+              <th style="width: 10%" scope="col">Type</th>
+              <th style="width: 10%" scope="col">Endpoint</th>
+              <th style="width: 10%" scope="col">API token</th>
+              <th style="width: 10%" scope="col" v-if="user.role.type=='admin'">User</th>
+              <th style="width: 10%" scope="col"></th>
             </tr>
           <tr v-for="item in senders" :key="item.id">
             <td>{{item.phone}}</td>
