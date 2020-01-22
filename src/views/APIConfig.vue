@@ -24,7 +24,7 @@
               <th scope="col">Endpoint</th>
               <th scope="col">API token</th>
               <th scope="col" v-if="user.role.type=='admin'">User</th>
-              <th style="width: 100px" scope="col"></th>
+              <th style="width: 100px;" scope="col"></th>
             </tr>
           <tr v-for="item in senders" :key="item.id">
             <td>{{item.phone}}</td>
