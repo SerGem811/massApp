@@ -1,18 +1,15 @@
 <template>
   <section>
     <div class="row">
-      <div class="col-md-2">
-        <span class="float-right font-bold m-t-5">Phone number :</span>
-      </div>
       <div class="col-md-4">
+        <span class="float-right font-bold m-t-5">Service Name -- (Phone Number) :</span>
+      </div>
+      <div class="col-md-5">
         <select class="form-control m-b-5" @change="onChangeNumber($event)">
-          <option v-for="item in senders" :key="item.id" :value="item.id">{{item.phone}} : {{item.type}}</option>
+          <option v-for="item in senders" :key="item.id" :value="item.id">{{item.name}} -- ({{item.phone}})</option>
         </select>
       </div>
-      <div class="col-md-4">
-        <span class="font-bold d-flex m-t-5">Name : {{senderdata? senderdata.name : ""}}</span>
-      </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
         <button
           type="success"
           class="btn-success btn m-r-10 float-right"
@@ -80,14 +77,14 @@
                   title="Quer mesmo ativar este gatilho?"
                   v-if="item.blocked"
                 >
-                  <el-button
+                  <button
                     slot="reference"
                     class="btn-danger btn btn-sm m-l-5"
                     type="danger"
                     size="small"
                   >
                     <span>off</span>
-                  </el-button>
+                  </button>
                 </el-popconfirm>
                 <el-popconfirm
                   @onConfirm="updateBlock(item.id)"
