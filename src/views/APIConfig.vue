@@ -453,7 +453,7 @@ export default {
     },
 
     // get telegram code
-    getTeleCode() {
+    async getTeleCode() {
       // generate token
       if (this.sender.name == "" || this.sender.phone == "") {
         this.$emit("showFailMessage", "Phone and Name is required");
@@ -464,7 +464,7 @@ export default {
           .then(response => {
             if (response.status == 200 && response.data.token != null) {
               this.sender.apitoken = response.data.token;
-              this.$emit('showSuccessMessage', this.sender.apitoken);
+              this.$emit("showSuccessMessage", this.sender.apitoken);
             } else {
               this.$emit(
                 "showFailMessage",
@@ -477,25 +477,26 @@ export default {
             return;
           });
       }
-
-      // request code
-      getTelegramCodeService(this.sender.apitoken, this.sender.phone)
-        .then(response => {
-          if (response.status == 200) {
-            this.$emit(
-              "showSuccessMessage",
-              "You may have code in telegram now"
-            );
-          } else {
-            this.$emit(
-              "showFailMessage",
-              "Something went wrong, please try again"
-            );
-          }
-        })
-        .catch(error => {
-          this.$emit("showFailMessage", error.message);
-        });
+      if (this.sender.apitoken != "" && this.sender.apitoken != null) {
+        // request code
+        getTelegramCodeService(this.sender.apitoken, this.sender.phone)
+          .then(response => {
+            if (response.status == 200) {
+              this.$emit(
+                "showSuccessMessage",
+                "You may have code in telegram now"
+              );
+            } else {
+              this.$emit(
+                "showFailMessage",
+                "Something went wrong, please try again"
+              );
+            }
+          })
+          .catch(error => {
+            this.$emit("showFailMessage", error.message);
+          });
+      }
     },
 
     submitTeleCode() {
