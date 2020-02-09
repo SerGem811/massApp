@@ -3,12 +3,13 @@
     <div class="row">
       <div class="col-md-12">
         <div class="float-right">
+          <button type="success" class="btn-success btn m-r-10" @click="refreshStatus">Refresh</button>
           <button
             type="success"
             class="btn-success btn m-r-10"
             data-toggle="modal"
-            data-target="#configModal"
-            @click="addConfig"
+            data-target="#senderModal"
+            @click="addSender"
           >Add</button>
         </div>
       </div>
@@ -18,66 +19,82 @@
         <table class="table table-striped">
           <thead class="thead-dark">
             <tr>
+              <th style="width: 5%" scope="col"></th>
               <th style="width: 10%" scope="col">Phone</th>
-              <th style="width: 20%" scope="col">Name</th>
+              <th style="width: 10%" scope="col">Name</th>
               <th style="width: 10%" scope="col">Type</th>
-              <th style="width: 20%" scope="col">Endpoint</th>
-              <th style="width: 20%" scope="col">API token</th>
-              <th style="width: 10%" scope="col" v-if="user.role.type=='admin'">User</th>
-              <th style="width: 10%" scope="col"></th>
+              <th style="width: 15%" scope="col">Reply</th>
+              <th style="width: 30%" scope="col">Endpoint</th>
+              <!-- <th style="width: 20%" scope="col">API token</th> -->
+              <th style="width: 8%" scope="col" v-if="user.role.type=='admin'">User</th>
+              <th style="width: 12%" scope="col"></th>
             </tr>
           </thead>
-          <tr v-for="item in senders" :key="item.id">
-            <td>{{item.phone}}</td>
-            <td>{{item.name}}</td>
-            <td>{{item.type}}</td>
-            <td>{{item.endpoint}}</td>
-            <td>{{item.apitoken}}</td>
-            <td v-if="user.role.type=='admin'">{{item.user.username}}</td>
-            <td>
-              <!-- Edit button -->
-              <button
-                class="btn-danger btn btn-sm"
-                @click="showConfigModal(item)"
-                type="danger"
-                size="small"
-                data-toggle="modal"
-                data-target="#configModal"
-              >
-                <i class="el-icon-edit"></i>
-              </button>
-
-              <!-- Delete button -->
-              <el-popconfirm
-                @onConfirm="deleteConfig(item)"
-                confirmButtonText="Sim"
-                cancelButtonText="Não"
-                icon="el-icon-info"
-                iconColor="red"
-                title="Quer deletar?"
-              >
-                <el-button
-                  slot="reference"
+          <tbody>
+            <tr v-for="item in senders" :key="item.id" v-bind:person="item">
+              <td>
+                <!-- <span>{{item.status}}</span> -->
+                <span v-show="item.status==0" class="status-dot status-con"></span>
+                <span v-show="item.status==1" class="status-dot status-discon"></span>
+                <span v-show="item.status==2" class="status-dot status-error"></span>
+              </td>
+              <td>{{item.phone}}</td>
+              <td>{{item.name}}</td>
+              <td>{{item.type}}</td>
+              <td>{{item.autoreply != null ? item.autoreply.name : ""}}</td>
+              <td>{{item.endpoint}}</td>
+              <!-- <td>{{item.apitoken}}</td> -->
+              <td v-if="user.role.type=='admin'">{{item.user.username}}</td>
+              <td>
+                <!-- Connect / Disconnect -->
+                <button class="btn-danger btn btn-sm" @click="onConn(item)">
+                  <span>{{item.conn}}</span>
+                </button>
+                <!-- Edit button -->
+                <button
                   class="btn-danger btn btn-sm m-l-5"
+                  @click="showSenderModal(item)"
                   type="danger"
                   size="small"
+                  data-toggle="modal"
+                  data-target="#senderModal"
                 >
-                  <i class="el-icon-delete"></i>
-                </el-button>
-              </el-popconfirm>
-            </td>
-          </tr>
+                  <i class="el-icon-edit"></i>
+                </button>
+
+                <!-- Delete button -->
+                <el-popconfirm
+                  @onConfirm="deleteSender(item)"
+                  confirmButtonText="Sim"
+                  cancelButtonText="Não"
+                  icon="el-icon-info"
+                  iconColor="red"
+                  title="Quer deletar?"
+                >
+                  <el-button
+                    slot="reference"
+                    class="btn-danger btn btn-sm m-l-5"
+                    type="danger"
+                    size="small"
+                  >
+                    <i class="el-icon-delete"></i>
+                  </el-button>
+                </el-popconfirm>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
+
     <div
       class="modal fade"
-      id="configModal"
+      id="senderModal"
       tabindex="-1"
       role="dialog"
       aria-labelledby="API configuration"
       aria-hidden="true"
-      ref="configModal"
+      ref="senderModal"
     >
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -91,45 +108,84 @@
             <form>
               <div class="form-group">
                 <label for="config-phone" class="col-form-label">Phone</label>
-                <input type="text" class="form-control" id="config-phone" v-model="senderdata.phone" />
+                <input type="text" class="form-control" id="config-phone" v-model="sender.phone" />
                 <div
-                  v-if="submitted && !senderdata.phone"
+                  v-if="submitted && !sender.phone"
                   class="input-required"
                 >Phone number is required</div>
               </div>
               <div class="form-group">
                 <label for="config-name" class="col-form-label">Name</label>
-                <input type="text" class="form-control" id="config-name" v-model="senderdata.name" />
-                <div v-if="submitted && !config.name" class="input-required">Name is required</div>
+                <input type="text" class="form-control" id="config-name" v-model="sender.name" />
+                <div v-if="submitted && !sender.name" class="input-required">Name is required</div>
               </div>
               <div class="form-group">
                 <label for="config-type" class="col-form-label">Type</label>
-                <select class="form-control" v-model="senderdata.type">
+                <select class="form-control" v-model="sender.type">
                   <option value="MercuryAPI">MercuryAPI</option>
                   <option value="ChatAPI">ChatAPI</option>
                   <option value="WrapperAPI">WrapperAPI</option>
-                  <option value="WhatsOfficialApi">WhatsOfficialApi</option>
+                  <option value="WhatsOfficialAPI">WhatsOfficialAPI</option>
                   <option value="TelegramAPI">TelegramAPI</option>
                 </select>
               </div>
               <div class="form-group">
-                <label for="config-endpoint" class="col-form-label">Endpoint</label>
-                <input type="text" class="form-control" id="config-endpoint" v-model="senderdata.endpoint" />
-                <div v-if="submitted && !senderdata.endpoint" class="input-required">Endpoint is required</div>
+                <div v-show="sender.type=='WrapperAPI'">
+                  <img class="img-qr" v-bind:src="qrcode" />
+                  <button
+                    type="button"
+                    class="btn btn-success m-l-10"
+                    v-show="sender.type=='WrapperAPI'"
+                    @click="qrRegister"
+                  >Get QR Code</button>
+                </div>
+
+                <div v-show="sender.type=='TelegramAPI'">
+                  <label for="config-telecode" class="col-form-label">Telegram Code</label>
+                  <input type="text" id="config-telecode" v-model="telecode" class="form-control" />
+                  <button
+                    type="button"
+                    class="float-right m-t-5 m-l-10"
+                    @click="submitTeleCode"
+                  >Submit Code</button>
+                  <button type="button" class="float-right m-t-5" @click="getTeleCode">Request Code</button>
+                </div>
               </div>
               <div class="form-group">
-                <label for="config-token" class="col-form-label">API token</label>
-                <input type="text" class="form-control" id="config-token" v-model="senderdata.apitoken" />
+                <label for="config-endpoint" class="col-form-label">Endpoint</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="config-endpoint"
+                  v-model="sender.endpoint"
+                />
                 <div
-                  v-if="submitted && !senderdata.apitoken"
+                  v-if="submitted && !sender.endpoint"
+                  class="input-required"
+                >Endpoint is required</div>
+              </div>
+              <div
+                class="form-group"
+                v-show="sender.type != 'TelegramAPI' && sender.type != 'WrapperAPI'"
+              >
+                <label for="config-token" class="col-form-label">API token</label>
+                <input type="text" class="form-control" id="config-token" v-model="sender.apitoken" />
+                <div
+                  v-if="submitted && !sender.apitoken"
                   class="input-required"
                 >API token is required</div>
+              </div>
+              <div class="form-group">
+                <label for="config-reply" class="col-form-label">Auto-reply</label>
+                <select class="form-control" v-model="sender.autoreply.id">
+                  <option v-for="item in replies" :key="item.id" :value="item.id">{{item.name}}</option>
+                </select>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary" @click="updateConfig">Save changes</button>
-            <button type="button" class="btn btn-secondary" @click="closeConfigModal">Close</button>
+            <button type="button" class="btn btn-primary" @click="updateSender">Save changes</button>
+            <button type="button" class="btn btn-secondary" @click="closeSenderModal">Close</button>
           </div>
         </div>
       </div>
@@ -140,130 +196,339 @@
 <script>
 import $ from "jquery";
 import {
-  updateConfigDataService,
-  createConfigDataService,
-  deleteConfigDataService
+  getSenderService,
+  updateSenderService,
+  createSenderService,
+  deleteSenderService,
+  getQRCodeService,
+  getWrapperTokenService,
+  submitTelegramCodeService,
+  getTelegramTokenService,
+  getConnectionStatusService,
+  getTelegramCodeService
 } from "../services/service";
 
 export default {
   name: "APIConfig",
-  props: ["user", "senders"],
+  props: ["user", "replies"],
   data() {
     return {
-      senderdata: {
+      sender: {
         phone: "",
         type: "MercuryAPI",
         name: "",
         apitoken: "",
-        endpoint: ""
+        endpoint: "",
+        autoreply: {},
+        conn: "on"
       },
-      submitted: false
+      senders: [],
+      submitted: false,
+      telecode: "",
+      qrcode: ""
     };
   },
   methods: {
-    addConfig() {
-      this.senderdata = {
-        phone: "",
-        type: "MercuryAPI",
-        name: "",
-        apitoken: ""
-      };
+    addSender() {
+      this.emptySender();
     },
 
-    showConfigModal(item) {
-      this.senderdata = { ...item };
+    showSenderModal(item) {
+      this.sender = { ...item };
+      this.qrcode = "";
     },
 
-    closeConfigModal() {
+    closeSenderModal() {
       this.submitted = false;
-      $("#configModal").modal("hide");
+      $("#senderModal").modal("hide");
     },
 
-    updateConfig() {
+    updateSender() {
       this.submitted = true;
-      if (
-        this.senderdata.phone &&
-        this.senderdata.type &&
-        this.senderdata.name &&
-        this.senderdata.apitoken
-      ) {
-        if (this.senderdata.id === undefined) {
-          this.senderdata.user = this.user.id;
-          createConfigDataService(this.senderdata)
-            .then(response => {
-              if (response.status === 200) {
-                this.senderdata = {
-                  phone: "",
-                  type: "MercuryAPI",
-                  name: "",
-                  apitoken: ""
-                };
-                this.showSuccessMessage("configration created");
-
-                this.refreshPage();
-              } else {
-                this.showFailMessage("Cannot add the configuration");
-              }
-            })
-            .catch(error => {
-              this.showFailMessage(error.message);
-            });
-        } else {
-          updateConfigDataService(this.senderdata)
-            .then(response => {
-              if (response.status === 200) {
-                this.senderdata = {
-                  phone: "",
-                  type: "MercuryAPI",
-                  name: "",
-                  apitoken: ""
-                };
-                this.showSuccessMessage("Success in update configuration");
-                this.refreshPage();
-              } else {
-                this.showFailMessage("Cannot update the configuration");
-              }
-            })
-            .catch(error => {
-              this.showFailMessage(error.message);
-            });
+      if (this.sender.id && this.sender.id != null) {
+        updateSenderService(this.sender)
+          .then(response => {
+            if (response.status == 200) {
+              this.$emit(
+                "showSuccessMessage",
+                "Sender is successfully updated"
+              );
+              this.emptySender();
+              this.refreshPage();
+            } else {
+              this.$emit("showFailMessage", "Cannot update the Sender");
+            }
+          })
+          .catch(error => {
+            this.$emit("showFailMessage", error.message);
+          });
+      } else {
+        // create new
+        this.sender.user = this.user.id;
+        if (this.sender.apitoken == "") {
+          this.$emit("showFailMessage", "Please authenticate first");
+          return;
         }
+        createSenderService(this.sender)
+          .then(response => {
+            if (response.status == 200) {
+              this.$emit(
+                "showSuccessMessage",
+                "Sender is successfully created"
+              );
+              this.emptySender();
+              this.refreshPage();
+            } else {
+              this.$emit("showFailMessage", "Cannot create the Sender");
+            }
+          })
+          .catch(error => {
+            this.$emit("showFailMessage", error.message);
+          });
       }
     },
 
-    deleteConfig(item) {
-      deleteConfigDataService(item)
+    emptySender() {
+      this.sender = {
+        phone: "",
+        type: "MercuryAPI",
+        name: "",
+        apitoken: "",
+        autoreply: {},
+        conn: "on"
+      };
+      this.qrcode = "";
+    },
+
+    deleteSender(item) {
+      deleteSenderService(item)
         .then(response => {
           if (response.status === 200) {
-            this.showSuccessMessage("Configuration removed");
+            this.$emit("showSuccessMessage", "Sender is successfully removed");
             this.refreshPage();
           } else {
-            this.showFailMessage("Cannot delete the configuraiton");
+            this.$emit("showFailMessage", "Cannot delete the sender");
           }
         })
         .catch(error => {
-          this.showFailMessage(error.message);
+          this.$emit("showFailMessage", error.message);
         });
     },
 
     refreshPage() {
-      this.closeConfigModal();
+      this.closeSenderModal();
       this.submitted = false;
-      this.$emit("senderUpdated");
+      this.emptySender();
+
+      getSenderService(this.user.id)
+        .then(async response => {
+          if (response.status == 200) {
+            this.senders = response.data;
+            for (var i = 0; i < this.senders.length; i++) {
+              this.senders[i].status = 2;
+            }
+          } else {
+            this.senders = [];
+          }
+          this.refreshStatus();
+        })
+        .catch(error => {
+          this.$emit("showFailMessage", error.message);
+        });
     },
 
-    showFailMessage(message) {
-      this.$notify.error({
-        title: "Error",
-        message: message
-      });
+    async refreshStatus() {
+      // get connection status
+      for (var i = 0; i < this.senders.length; i++) {
+        if (
+          this.senders[i].type == "WrapperAPI" ||
+          this.senders[i].type == "TelegramAPI"
+        ) {
+          await getConnectionStatusService(
+            this.senders[i].apitoken,
+            this.senders[i].type
+          )
+            .then(response => {
+              if (response.status == 200) {
+                this.senders[i].status = this.getStatusCode(
+                  response.data.internetStatus
+                );
+              } else {
+                this.senders[i].status = 2;
+              }
+            })
+            .catch(() => {
+              this.senders[i].status = 2;
+            });
+        }
+      }
+      this.$forceUpdate();
     },
 
-    showSuccessMessage(message) {
-      this.$notify.success({
-        title: "Success",
-        message: message
-      });
+    getStatusCode(val) {
+      if (val == "connected") {
+        return 0;
+      } else if (val == "disconnected") {
+        return 1;
+      } else {
+        return 2;
+      }
+    },
+
+    async qrRegister() {
+      if (this.sender.name == "" || this.sender.phone == "") {
+        this.$emit("showFailMessage", "Phone and Name is required");
+        return;
+      }
+      if (this.sender.apitoken == "") {
+        // create token
+        await getWrapperTokenService(this.sender.name, "Pwd123!@#")
+          .then(response => {
+            if (
+              response.status == 200 &&
+              response.data.token &&
+              response.data.token != null
+            ) {
+              this.sender.apitoken = response.data.token;
+              this.$emit("showSuccessMessage", this.sender.apitoken);
+            } else {
+              this.$emit(
+                "showFailMessage",
+                "Something went wrong, please try again"
+              );
+              return;
+            }
+          })
+          .catch(error => {
+            this.$emit("showFailMessage", error.message);
+            return;
+          });
+      }
+      // toke is already created
+      // get qr image
+      if (
+        this.sender.apitoken &&
+        this.sender.apitoken != "" &&
+        this.sender.apitoken != null
+      ) {
+        getQRCodeService(this.sender.apitoken)
+          .then(response => {
+            if (
+              response.status == 200 &&
+              response.data != null &&
+              response.data.qr != null
+            ) {
+              this.qrcode = "data:image/png;base64, " + response.data.qr;
+            } else {
+              this.qrcode = "";
+              this.$emit(
+                "showFailMessage",
+                "Something went wrong, try again please"
+              );
+            }
+          })
+          .catch(error => {
+            this.$emit("showFailMessage", error.message);
+          });
+      }
+    },
+
+    onConn(item) {
+      const s = item;
+      if (s.conn == "on") {
+        s.conn = "off";
+      } else if (s.conn == "off") {
+        s.conn = "on";
+      }
+      updateSenderService(s)
+        .then(response => {
+          if (response.status == 200) {
+            this.$emit("showSuccessMessage", "Connection status is updated");
+            // this.refreshPage();
+          }
+        })
+        .catch(error => {
+          this.$emit("showFailMessage", error.message);
+        });
+    },
+
+    // get telegram code
+    getTeleCode() {
+      // generate token
+      if (this.sender.name == "" || this.sender.phone == "") {
+        this.$emit("showFailMessage", "Phone and Name is required");
+        return;
+      }
+      if (this.sender.apitoken == "") {
+        await getTelegramTokenService(this.sender.name, "Pwd123!@#")
+          .then(response => {
+            if (response.status == 200 && response.data.token != null) {
+              this.sender.apitoken = response.data.token;
+              this.$emit('showSuccessMessage', this.sender.apitoken);
+            } else {
+              this.$emit(
+                "showFailMessage",
+                "Something went wrong, please try again"
+              );
+            }
+          })
+          .catch(error => {
+            this.$emit("showFailMessage", error.message);
+            return;
+          });
+      }
+
+      // request code
+      getTelegramCodeService(this.sender.apitoken, this.sender.phone)
+        .then(response => {
+          if (response.status == 200) {
+            this.$emit(
+              "showSuccessMessage",
+              "You may have code in telegram now"
+            );
+          } else {
+            this.$emit(
+              "showFailMessage",
+              "Something went wrong, please try again"
+            );
+          }
+        })
+        .catch(error => {
+          this.$emit("showFailMessage", error.message);
+        });
+    },
+
+    submitTeleCode() {
+      if (
+        this.telecode != "" &&
+        this.sender.token != "" &&
+        this.sender.phone != ""
+      ) {
+        submitTelegramCodeService(
+          this.sender.token,
+          this.sender.phone,
+          this.telecode,
+          ""
+        )
+          .then(response => {
+            if (response.status == 200) {
+              this.$emit(
+                "showSuccessMessage",
+                "Successfully register your number"
+              );
+            } else {
+              this.$emit(
+                "showFailMessage",
+                "Something went wrong with sending code"
+              );
+            }
+          })
+          .catch(error => {
+            this.$emit("showFailMessage", error.message);
+          });
+      } else {
+        this.$emit("showFailMessage", "Telegram code is required");
+      }
     }
   },
 
@@ -290,5 +555,27 @@ th {
   margin-top: 0.25rem;
   font-size: 80%;
   color: #dc3545;
+}
+
+.img-qr {
+  width: 200px;
+  height: 200px;
+}
+
+.status-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-con {
+  background-color: green;
+}
+.status-discon {
+  background-color: gray;
+}
+.status-error {
+  background-color: red;
 }
 </style>

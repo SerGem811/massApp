@@ -2,21 +2,21 @@
   <section>
     <div class="row">
       <div class="col-md-4">
-        <span class="float-right font-bold m-t-5">Service Name -- (Phone Number) :</span>
+        <span class="float-right font-bold m-t-5">Auto-reply List :</span>
       </div>
-      <div class="col-md-5">
-        <select class="form-control m-b-5" @change="onChangeNumber($event)">
-          <option v-for="item in senders" :key="item.id" :value="item.id">{{item.name}} -- ({{item.phone}})</option>
+      <div class="col-md-4">
+        <select class="form-control m-b-5" @change="onChangeReply($event)">
+          <option v-for="item in replies" :key="item.id" :value="item.id">{{item.name}}</option>
         </select>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <button
           type="success"
           class="btn-success btn m-r-10 float-right"
           data-toggle="modal"
           data-target="#responseModal"
-          :disabled="senderdata==null"
-        >Add</button>
+          :disabled="reply==null"
+        >Add Response</button>
       </div>
     </div>
     <div class="row">
@@ -177,6 +177,7 @@
         </div>
       </div>
     </div>
+
   </section>
 </template>
 
@@ -185,8 +186,8 @@ import VueEmoji from "emoji-vue";
 import draggable from "vuedraggable";
 import $ from "jquery";
 import {
-  getAllResponses,
-  addResponseService,
+  getResponsesService,
+  createResponseService,
   updateResponseService,
   countResponsesService,
   deleteResponseService
@@ -194,10 +195,9 @@ import {
 
 export default {
   name: "Responses",
-  props: ["user", "senders"],
+  props: ["user", "replies"],
   data() {
     return {
-      myText: "",
       response: {
         id: "",
         name: "",
@@ -212,7 +212,7 @@ export default {
         currentPage: 1
       },
       submitted: false,
-      senderdata: null
+      reply: null,
     };
   },
 
@@ -222,13 +222,14 @@ export default {
   },
 
   methods: {
+    // input for the emoji
     onInput(event) {
       if (event && event.data) {
         this.response.response = event.data;
       }
     },
 
-    // add new response to the database
+    // add new response to the auto-reply list
     addResponse() {
       // add new response
       this.response.blocked = false;
@@ -239,20 +240,20 @@ export default {
         if (obj.order > maxOrder) maxOrder = obj.order;
       });
       this.response.order = maxOrder + 1;
-      this.response.senderdata = this.senderdata.id;
-      addResponseService(this.response)
+      this.response.autoreply = this.reply.id;
+      createResponseService(this.response)
         .then(response => {
           //notification
           if (response.status === 200) {
             this.closeResponseModal();
             this.refreshPage();
-            this.showSuccessMessage("New response created");
+            this.$emit("showSuccessMessage", "New response is created");
           } else {
-            this.showFailMessage("Can't add new response");
+            this.$emit("showFailMessage", "Cannot create a new response");
           }
         })
         .catch(error => {
-          this.showFailMessage(error.message);
+          this.$emit("showFailMessage", error.message);
         });
     },
 
@@ -264,7 +265,7 @@ export default {
         updateResponseService(this.response.id, this.response)
           .then(response => {
             if (response.status === 200) {
-              this.showSuccessMessage("Response is updated");
+              this.$emit("showSuccessMessage", "Response is updated");
               this.response = {
                 id: "",
                 name: "",
@@ -274,11 +275,11 @@ export default {
               this.closeResponseModal();
               this.refreshPage();
             } else {
-              this.showFailMessage("Can't update the response");
+              this.$emit("showFailMessage", "Cannot update the response");
             }
           })
           .catch(error => {
-            this.showFailMessage(error.message);
+            this.$emit("showFailMessage", error.message);
           });
       } else {
         this.addResponse();
@@ -286,22 +287,23 @@ export default {
     },
 
     // when click edit in table
-    updateItem(data) {
-      this.showResponseModal(data);
+    updateItem(item) {
+      this.showResponseModal(item);
     },
 
+    // delete response
     deleteResponse(id) {
       deleteResponseService(id)
         .then(response => {
           if (response.status === 200) {
-            this.showSuccessMessage("Response is successfully removed");
+            this.$emit("showSuccessMessage", "Response is successfully removed");
             this.refreshPage();
           } else {
-            this.showFailMessage("Can't remove the response");
+            this.$emit("showFailMessage", "Cannot remove the response");
           }
         })
         .catch(error => {
-          this.showFailMessage(error.message);
+          this.$emit("showFailMessage", error.message);
         });
     },
 
@@ -310,7 +312,7 @@ export default {
         register.order = item;
         updateResponseService(register.id, register);
       });
-      this.showSuccessMessage("Response order updated");
+      this.$emit("showSuccessMessage", "Response orders are updated");
     },
 
     updateBlock(id) {
@@ -321,16 +323,16 @@ export default {
           .then(response => {
             if (response.status === 200) {
               if (r.blocked) {
-                this.showSuccessMessage("Response is now blocked");
+                this.$emit("showSuccessMessage", "Response is now blocked");
               } else {
-                this.showSuccessMessage("response is now activated");
+                this.$emit("showSuccessMessage", "Response is now activated");
               }
             } else {
-              this.showSuccessMessage("Can't update the response");
+              this.$emit("showFailMessage", "Cannot update the response");
             }
           })
           .catch(error => {
-            this.showFailMessage(error.message);
+            this.$emit("showFailMessage", error.message);
           });
       }
     },
@@ -342,13 +344,13 @@ export default {
           this.pagination.count = Math.ceil(res / this.pagination.pageSize);
         })
         .catch(error => {
-          this.showFailMessage(error.message);
+          this.$emit("showFailMessage", error.message);
         });
     },
 
     refreshPage() {
-      if (this.senderdata !== null) {
-        getAllResponses(this.pagination, this.senderdata.id)
+      if (this.reply !== null) {
+        getResponsesService(this.pagination, this.reply.id)
           .then(response => {
             if (response.status == 200) {
               this.responses = response.data;
@@ -356,25 +358,11 @@ export default {
             }
           })
           .catch(error => {
-            this.showFailMessage(error.message);
+            this.$emit("showFailMessage", error.message);
           });
       } else {
         this.responses = [];
       }
-    },
-
-    showSuccessMessage(message) {
-      this.$notify.success({
-        title: "Success",
-        message: message
-      });
-    },
-
-    showFailMessage(message) {
-      this.$notify.error({
-        title: "Failed",
-        message: message
-      });
     },
 
     showResponseModal(item) {
@@ -388,12 +376,12 @@ export default {
       this.emptyResponse();
     },
 
-    onChangeNumber(event) {
-      const sender = this.senders.find(x => x.id == event.target.value);
-      if (sender) {
-        this.senderdata = sender;
+    onChangeReply(event) {
+      const r = this.replies.find(x => x.id == event.target.value);
+      if (r) {
+        this.reply = r;
       } else {
-        this.senderdata = null;
+        this.reply = null;
       }
 
       this.refreshPage();
@@ -412,21 +400,21 @@ export default {
 
   mounted() {
     // load configuration
-    if (this.senders && this.senders.length > 0) {
-      this.senderdata = this.senders[0];
+    if (this.replies && this.replies.length > 0) {
+      this.reply = this.replies[0];
     } else {
-      this.senderdata = null;
+      this.reply = null;
     }
     this.refreshPage();
   },
   watch: {
-    senders: {
+    replies: {
       immediate: true,
       handler() {
-        if (this.senders && this.senders.length > 0) {
-          this.senderdata = this.senders[0];
+        if (this.replies && this.replies.length > 0) {
+          this.reply = this.replies[0];
         } else {
-          this.senderdata = null;
+          this.reply = null;
         }
         this.refreshPage();
       }
