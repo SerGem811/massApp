@@ -315,12 +315,12 @@ export default {
         });
     },
 
-    refreshPage() {
+    async refreshPage() {
       this.closeSenderModal();
       this.submitted = false;
       this.emptySender();
 
-      getSenderService(this.user.id)
+      await getSenderService(this.user.id)
         .then(async response => {
           if (response.status == 200) {
             this.senders = response.data;
@@ -330,7 +330,6 @@ export default {
           } else {
             this.senders = [];
           }
-          this.refreshStatus();
         })
         .catch(error => {
           this.$emit("showFailMessage", error.message);
@@ -502,14 +501,14 @@ export default {
     submitTeleCode() {
       if (
         this.telecode != "" &&
-        this.sender.token != "" &&
+        this.sender.apitoken != "" &&
         this.sender.phone != ""
       ) {
         submitTelegramCodeService(
-          this.sender.token,
+          this.sender.apitoken,
           this.sender.phone,
           this.telecode,
-          ""
+          "pwd"
         )
           .then(response => {
             if (response.status == 200) {
@@ -536,6 +535,7 @@ export default {
   mounted() {
     // load configurations
     this.refreshPage();
+    this.refreshStatus();
   }
 };
 </script>
