@@ -359,6 +359,8 @@ export default {
             .catch(() => {
               this.senders[i].status = 2;
             });
+        } else {
+          this.senders[i].status = 2;
         }
       }
       this.$forceUpdate();
