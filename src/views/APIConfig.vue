@@ -324,23 +324,20 @@ export default {
         .then(async response => {
           if (response.status == 200) {
             this.senders = response.data;
-            for (var i = 0; i < this.senders.length; i++) {
-              this.senders[i].status = 2;
-            }
+            // for (var i = 0; i < this.senders.length; i++) {
+            //   this.senders[i].status = 2;
+            // }
           } else {
             this.senders = [];
           }
-          console.log('get sender then');
         })
         .catch(error => {
           this.$emit("showFailMessage", error.message);
         });
-        console.log('get sender done');
     },
 
     async refreshStatus() {
       // get connection status
-      console.log('refresh status');
       for (var i = 0; i < this.senders.length; i++) {
         if (
           this.senders[i].type == "WrapperAPI" ||
