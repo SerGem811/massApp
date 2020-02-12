@@ -1,5 +1,10 @@
 <template>
   <section>
+    <loading
+      :active.sync='isLoading'
+      :is-full-page='true'
+    >
+    </loading>
     <div class="row">
       <div class="col-md-12">
         <div class="float-right">
@@ -194,6 +199,9 @@
 </template>
 
 <script>
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
+
 import $ from "jquery";
 import {
   getSenderService,
@@ -225,7 +233,8 @@ export default {
       senders: [],
       submitted: false,
       telecode: "",
-      qrcode: ""
+      qrcode: "",
+      isLoading: false
     };
   },
   methods: {
@@ -334,10 +343,12 @@ export default {
         .catch(error => {
           this.$emit("showFailMessage", error.message);
         });
+      this.refreshStatus();
     },
 
     async refreshStatus() {
       // get connection status
+      this.isLoading = true;
       for (var i = 0; i < this.senders.length; i++) {
         if (
           this.senders[i].type == "WrapperAPI" ||
@@ -363,6 +374,7 @@ export default {
           this.senders[i].status = 2;
         }
       }
+      this.isLoading = false;
       this.$forceUpdate();
     },
 
@@ -533,7 +545,9 @@ export default {
       }
     }
   },
-
+  components: {
+    Loading
+  },
   async mounted() {
     // load configurations
     await this.refreshPage();

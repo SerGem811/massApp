@@ -92,13 +92,13 @@ export async function deleteAutoReplyService(id) {
 
 //////////////// response services ////////////////////////////////
 // get all responses
-export function getResponsesService (pagination, reply_id) {
+export async function getResponsesService (pagination, reply_id) {
   let start = (pagination.currentPage * pagination.pageSize) - pagination.pageSize
   let limit = pagination.pageSize
 
   let url =  BASE_URL + '/responsewapps?autoreply=' + reply_id + '&_start=' + start + '&_limit=' + limit + '&_sort=order:asc'
 
-  return axios({
+  return await axios({
     method: 'GET',
     url,
     headers: {

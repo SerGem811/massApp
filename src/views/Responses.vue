@@ -1,5 +1,11 @@
 <template>
   <section>
+    <loading
+      :active.sync='isLoading'
+      :can-cancel='true'
+      :is-full-page='true'
+    >
+    </loading>
     <div class="row">
       <div class="col-md-4">
         <span class="float-right font-bold m-t-5">Auto-reply List :</span>
@@ -182,6 +188,9 @@
 </template>
 
 <script>
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
+
 import VueEmoji from "emoji-vue";
 import draggable from "vuedraggable";
 import $ from "jquery";
@@ -213,12 +222,14 @@ export default {
       },
       submitted: false,
       reply: null,
+      isLoading: false
     };
   },
 
   components: {
     VueEmoji,
-    draggable
+    draggable,
+    Loading
   },
 
   methods: {
@@ -348,9 +359,10 @@ export default {
         });
     },
 
-    refreshPage() {
+    async refreshPage() {
+      this.isLoading = true;
       if (this.reply !== null) {
-        getResponsesService(this.pagination, this.reply.id)
+        await getResponsesService(this.pagination, this.reply.id)
           .then(response => {
             if (response.status == 200) {
               this.responses = response.data;
@@ -363,6 +375,7 @@ export default {
       } else {
         this.responses = [];
       }
+      this.isLoading = false;
     },
 
     showResponseModal(item) {
