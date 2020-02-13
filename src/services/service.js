@@ -237,7 +237,6 @@ export async function getQRCodeService(token) {
   return axios({
     method: 'POST',
     url: `${WrapperURL}/qr/`,
-    timeout: 60000,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -252,7 +251,6 @@ export async function getWrapperTokenService(username, password) {
   return await axios({
     method: 'POST',
     url: `${WrapperURL}/get_token/`,
-    timeout: 60000,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -272,7 +270,6 @@ export async function getTelegramCodeService(token, phone) {
   return axios({
     method: 'POST',
     url: `${TelegramURL}/request_code/`,
-    timeout: 6000,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -288,7 +285,6 @@ export async function submitTelegramCodeService(token, phone, code, password) {
   return axios({
     method: 'POST',
     url: `${TelegramURL}/submit_code/`,
-    timeout: 6000,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -313,6 +309,21 @@ export async function getTelegramTokenService(username, password) {
     data: {
       'username': username,
       'password': password
+    }
+  });
+}
+// attach_webhook
+export async function attachWebhookTelegramService(token, phone) {
+  return axios({
+    method: 'POST',
+    url: `${TelegramURL}/attach_webhook/`,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    data: {
+      'token': token,
+      'phone': phone
     }
   });
 }

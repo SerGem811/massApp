@@ -211,6 +211,7 @@ import {
   getQRCodeService,
   getWrapperTokenService,
   submitTelegramCodeService,
+  attachWebhookTelegramService,
   getTelegramTokenService,
   getConnectionStatusService,
   getTelegramCodeService
@@ -245,6 +246,7 @@ export default {
     showSenderModal(item) {
       this.sender = { ...item };
       this.qrcode = "";
+      this.telecode = "";
     },
 
     closeSenderModal() {
@@ -530,6 +532,16 @@ export default {
                 "showSuccessMessage",
                 "Successfully register your number"
               );
+              // register webhook url
+                attachWebhookTelegramService(this.sender.apitoken, this.sender.phone)
+                .then(response => {
+                  if(response.status == 200) {
+                    this.$emit("showSuccessMessage", "Successfully register your webhook");
+                  }
+                })
+                .catch(error => {
+                  this.$emit("showFailMessage", error.message);
+                });
             } else {
               this.$emit(
                 "showFailMessage",
