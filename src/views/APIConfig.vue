@@ -1,10 +1,6 @@
 <template>
   <section>
-    <loading
-      :active.sync='isLoading'
-      :is-full-page='true'
-    >
-    </loading>
+    <loading :active.sync="isLoading" :is-full-page="true"></loading>
     <div class="row">
       <div class="col-md-12">
         <div class="float-right">
@@ -199,8 +195,8 @@
 </template>
 
 <script>
-import Loading from 'vue-loading-overlay';
-import 'vue-loading-overlay/dist/vue-loading.css';
+import Loading from "vue-loading-overlay";
+import "vue-loading-overlay/dist/vue-loading.css";
 
 import $ from "jquery";
 import {
@@ -254,7 +250,7 @@ export default {
       $("#senderModal").modal("hide");
     },
 
-    updateSender() {
+    updateSender(refreshPage) {
       this.submitted = true;
       if (this.sender.id && this.sender.id != null) {
         updateSenderService(this.sender)
@@ -264,8 +260,10 @@ export default {
                 "showSuccessMessage",
                 "Sender is successfully updated"
               );
-              this.emptySender();
-              this.refreshPage();
+              if (refreshPage) {
+                this.emptySender();
+                this.refreshPage();
+              }
             } else {
               this.$emit("showFailMessage", "Cannot update the Sender");
             }
@@ -287,8 +285,10 @@ export default {
                 "showSuccessMessage",
                 "Sender is successfully created"
               );
-              this.emptySender();
-              this.refreshPage();
+              if (refreshPage) {
+                this.emptySender();
+                this.refreshPage();
+              }
             } else {
               this.$emit("showFailMessage", "Cannot create the Sender");
             }
@@ -391,60 +391,72 @@ export default {
     },
 
     async qrRegister() {
-      if (this.sender.name == "" || this.sender.phone == "") {
-        this.$emit("showFailMessage", "Phone and Name is required");
-        return;
-      }
-      if (this.sender.apitoken == "") {
-        // create token
-        await getWrapperTokenService(this.sender.name, "Pwd123!@#")
-          .then(response => {
-            if (
-              response.status == 200 &&
-              response.data.token &&
-              response.data.token != null
-            ) {
-              this.sender.apitoken = response.data.token;
-              this.$emit("showSuccessMessage", this.sender.apitoken);
-            } else {
-              this.$emit(
-                "showFailMessage",
-                "Something went wrong, please try again"
-              );
+      try {
+        if (this.sender.name == "" || this.sender.phone == "") {
+          this.$emit("showFailMessage", "Phone and Name is required");
+          return;
+        }
+        if (this.sender.apitoken == "" || this.sender.apitoken == null) {
+          // create token
+          await getWrapperTokenService(this.sender.name, "Pwd123!@#")
+            .then(response => {
+              console.log("qrRegister name before create then");
+              console.log(response);
+              if (
+                response.status == 200 &&
+                response.data.token &&
+                response.data.token != null
+              ) {
+                this.sender.apitoken = response.data.token;
+                this.$emit("showSuccessMessage", this.sender.apitoken);
+
+                // if sender is in senders then save
+                const v = this.senders.findIndex(x => x.id == this.sender.id);
+                if (v >= 0) {
+                  this.updateSender();
+                }
+              } else {
+                this.$emit(
+                  "showFailMessage",
+                  "Something went wrong, please try again"
+                );
+                return;
+              }
+            })
+            .catch(error => {
+              this.$emit("showFailMessage", error.message);
               return;
-            }
-          })
-          .catch(error => {
-            this.$emit("showFailMessage", error.message);
-            return;
-          });
-      }
-      // toke is already created
-      // get qr image
-      if (
-        this.sender.apitoken &&
-        this.sender.apitoken != "" &&
-        this.sender.apitoken != null
-      ) {
-        getQRCodeService(this.sender.apitoken)
-          .then(response => {
-            if (
-              response.status == 200 &&
-              response.data != null &&
-              response.data.qr != null
-            ) {
-              this.qrcode = "data:image/png;base64, " + response.data.qr;
-            } else {
-              this.qrcode = "";
-              this.$emit(
-                "showFailMessage",
-                "Something went wrong, try again please"
-              );
-            }
-          })
-          .catch(error => {
-            this.$emit("showFailMessage", error.message);
-          });
+            });
+        }
+        // toke is already created
+        // get qr image
+        if (
+          this.sender.apitoken &&
+          this.sender.apitoken != "" &&
+          this.sender.apitoken != null
+        ) {
+          getQRCodeService(this.sender.apitoken)
+            .then(response => {
+              if (
+                response.status == 200 &&
+                response.data != null &&
+                response.data.qr != null
+              ) {
+                this.qrcode = "data:image/png;base64, " + response.data.qr;
+              } else {
+                this.qrcode = "";
+                this.$emit(
+                  "showFailMessage",
+                  "Something went wrong, try again please"
+                );
+              }
+            })
+            .catch(error => {
+              this.$emit("showFailMessage", error.message);
+            });
+        }
+      } catch (e) {
+        console.log(e);
       }
     },
 
@@ -474,12 +486,17 @@ export default {
         this.$emit("showFailMessage", "Phone and Name is required");
         return;
       }
-      if (this.sender.apitoken == "") {
+      if (this.sender.apitoken == "" || this.sender.apitoken == null) {
         await getTelegramTokenService(this.sender.name, "Pwd123!@#")
           .then(response => {
             if (response.status == 200 && response.data.token != null) {
               this.sender.apitoken = response.data.token;
-              this.$emit("showSuccessMessage", this.sender.apitoken);
+              // this.$emit("showSuccessMessage", this.sender.apitoken);
+              // if sender is in senders then save
+              const v = this.senders.findIndex(x => x.id == this.sender.id);
+              if (v >= 0) {
+                this.updateSender();
+              }
             } else {
               this.$emit(
                 "showFailMessage",
@@ -533,10 +550,16 @@ export default {
                 "Successfully register your number"
               );
               // register webhook url
-                attachWebhookTelegramService(this.sender.apitoken, this.sender.phone)
+              attachWebhookTelegramService(
+                this.sender.apitoken,
+                this.sender.phone
+              )
                 .then(response => {
-                  if(response.status == 200) {
-                    this.$emit("showSuccessMessage", "Successfully register your webhook");
+                  if (response.status == 200) {
+                    this.$emit(
+                      "showSuccessMessage",
+                      "Successfully register your webhook"
+                    );
                   }
                 })
                 .catch(error => {

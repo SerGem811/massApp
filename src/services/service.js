@@ -237,6 +237,7 @@ export async function getQRCodeService(token) {
   return axios({
     method: 'POST',
     url: `${WrapperURL}/qr/`,
+    timeout: 5000,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -251,6 +252,7 @@ export async function getWrapperTokenService(username, password) {
   return await axios({
     method: 'POST',
     url: `${WrapperURL}/get_token/`,
+    timeout: 5000,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -340,6 +342,7 @@ export async function getConnectionStatusService(token, type) {
   return await axios({
     method: 'POST',
     url,
+    timeout: 5000,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
