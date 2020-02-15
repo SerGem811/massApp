@@ -38,6 +38,7 @@
                 <span v-show="item.status==0" class="status-dot status-con"></span>
                 <span v-show="item.status==1" class="status-dot status-discon"></span>
                 <span v-show="item.status==2" class="status-dot status-error"></span>
+                <span v-show="item.status==3" class="status-dot status-not-config"></span>
               </td>
               <td>{{item.phone}}</td>
               <td>{{item.name}}</td>
@@ -123,25 +124,26 @@
               <div class="form-group">
                 <label for="config-type" class="col-form-label">Type</label>
                 <select class="form-control" v-model="sender.type">
-                  <option value="MercuryAPI">MercuryAPI</option>
-                  <option value="ChatAPI">ChatAPI</option>
-                  <option value="WrapperAPI">WrapperAPI</option>
-                  <option value="WhatsOfficialAPI">WhatsOfficialAPI</option>
-                  <option value="TelegramAPI">TelegramAPI</option>
+                  <option value="WA.Mercury">WA.Mercury</option>
+                  <option value="WA.Chat">WA.Chat</option>
+                  <option value="WA.Python">WA.Python</option>
+                  <option value="WA.Official">WA.Official</option>
+                  <option value="TG.Python">TG.Python</option>
+                  <option value="WA.GO">TG.GO</option>
                 </select>
               </div>
               <div class="form-group">
-                <div v-show="sender.type=='WrapperAPI'">
+                <div v-show="sender.type=='WA.Python' || sender.type == 'WA.GO'">
                   <img class="img-qr" v-bind:src="qrcode" />
                   <button
                     type="button"
                     class="btn btn-success m-l-10"
-                    v-show="sender.type=='WrapperAPI'"
+                    v-show="sender.type=='WA.Python' || sender.type == 'WA.GO'"
                     @click="qrRegister"
                   >Get QR Code</button>
                 </div>
 
-                <div v-show="sender.type=='TelegramAPI'">
+                <div v-show="sender.type=='TG.Python'">
                   <label for="config-telecode" class="col-form-label">Telegram Code</label>
                   <input type="text" id="config-telecode" v-model="telecode" class="form-control" />
                   <button
@@ -167,7 +169,7 @@
               </div>
               <div
                 class="form-group"
-                v-show="sender.type != 'TelegramAPI' && sender.type != 'WrapperAPI'"
+                v-show="sender.type != 'TG.Python' && sender.type != 'WA.Python'"
               >
                 <label for="config-token" class="col-form-label">API token</label>
                 <input type="text" class="form-control" id="config-token" v-model="sender.apitoken" />
@@ -220,7 +222,7 @@ export default {
     return {
       sender: {
         phone: "",
-        type: "MercuryAPI",
+        type: "WA.Mercury",
         name: "",
         apitoken: "",
         endpoint: "",
@@ -302,7 +304,7 @@ export default {
     emptySender() {
       this.sender = {
         phone: "",
-        type: "MercuryAPI",
+        type: "WA.Mercury",
         name: "",
         apitoken: "",
         autoreply: {},
@@ -353,8 +355,7 @@ export default {
       this.isLoading = true;
       for (var i = 0; i < this.senders.length; i++) {
         if (
-          this.senders[i].type == "WrapperAPI" ||
-          this.senders[i].type == "TelegramAPI"
+          this.senders[i].type == "WA.Python"
         ) {
           await getConnectionStatusService(
             this.senders[i].apitoken,
@@ -373,7 +374,7 @@ export default {
               this.senders[i].status = 2;
             });
         } else {
-          this.senders[i].status = 2;
+          this.senders[i].status = 3;
         }
       }
       this.isLoading = false;
@@ -629,5 +630,8 @@ th {
 }
 .status-error {
   background-color: red;
+}
+.status-not-config {
+  background-color: lightblue;
 }
 </style>
