@@ -1,6 +1,5 @@
 import axios from 'axios';
 import qs from 'qs';
-import querystring from 'querystring';
 
 import { BASE_URL, WAPythonURL, TGPythonURL, WAGOURL, WAGOHookURL } from './endpoints';
 
@@ -278,7 +277,7 @@ export async function getWAGOQRCodeService(token) {
       'Cache-Control': 'no-cache',
       'Content-Type': 'application/x-www-form-urlencoded'
     },
-    data: querystring.stringify({
+    data: qs.stringify({
       sessionId: token
     })
   });
