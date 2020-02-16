@@ -5,6 +5,7 @@ import store from './store'
 
 import ElementUI from 'element-ui'
 import VueDataTables from 'vue-data-tables'
+import UUID from 'vue-uuid'
 // import Loading from 'vue-loading-overlay'
 
 // import Notifications from 'vue-notification'
@@ -19,6 +20,7 @@ import '@/assets/global.css'
 
 Vue.use(ElementUI, {locale});
 Vue.use(VueDataTables);
+Vue.use(UUID);
 // Vue.use(Loading)
 
 // Vue.use(Notifications);

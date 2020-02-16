@@ -1,12 +1,18 @@
 const BASE_URL = 'http://172.107.180.59:1337';
 
 
-const WrapperURL = 'http://172.107.180.59:8001';
+const WAPythonURL = 'http://172.107.180.59:8001';
 
-const TelegramURL = 'http://172.107.180.59:8000';
+const WAGOURL = 'http://172.107.180.59:4000';
+
+const TGPythonURL = 'http://172.107.180.59:8000';
+
+const WAGOHookURL = 'http://172.107.180.59:1337/hookWAGOApi';
 
 export {
   BASE_URL,
-  WrapperURL,
-  TelegramURL
+  WAPythonURL,
+  TGPythonURL,
+  WAGOURL,
+  WAGOHookURL
 }

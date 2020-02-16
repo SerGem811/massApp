@@ -21,9 +21,9 @@
           <thead class="thead-dark">
             <tr>
               <th style="width: 5%" scope="col"></th>
-              <th style="width: 10%" scope="col">Phone</th>
+              <th style="width: 12%" scope="col">Phone</th>
               <th style="width: 10%" scope="col">Name</th>
-              <th style="width: 10%" scope="col">Type</th>
+              <th style="width: 8%" scope="col">Type</th>
               <th style="width: 15%" scope="col">Reply</th>
               <th style="width: 30%" scope="col">Endpoint</th>
               <!-- <th style="width: 20%" scope="col">API token</th> -->
@@ -138,9 +138,14 @@
                   <button
                     type="button"
                     class="btn btn-success m-l-10"
-                    v-show="sender.type=='WA.Python' || sender.type == 'WA.GO'"
-                    @click="qrRegister"
+                    @click="qrScan"
                   >Get QR Code</button>
+                  <button
+                    type="button"
+                    class="btn btn-success m-l-10"
+                    v-show="sender.type == 'WA.GO'"
+                    @click="qrRegister"
+                  >Hook</button>
                 </div>
 
                 <div v-show="sender.type=='TG.Python'">
@@ -169,7 +174,7 @@
               </div>
               <div
                 class="form-group"
-                v-show="sender.type != 'TG.Python' && sender.type != 'WA.Python'"
+                v-show="sender.type != 'TG.Python' && sender.type != 'WA.Python' && sender.type != 'WA.GO'"
               >
                 <label for="config-token" class="col-form-label">API token</label>
                 <input type="text" class="form-control" id="config-token" v-model="sender.apitoken" />
@@ -199,6 +204,7 @@
 <script>
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/vue-loading.css";
+import { uuid } from "vue-uuid";
 
 import $ from "jquery";
 import {
@@ -206,13 +212,15 @@ import {
   updateSenderService,
   createSenderService,
   deleteSenderService,
-  getQRCodeService,
-  getWrapperTokenService,
-  submitTelegramCodeService,
-  attachWebhookTelegramService,
-  getTelegramTokenService,
+  getWAPythonQRCodeService,
+  getWAPythonTokenService,
+  submitTGPythonCodeService,
+  attachWebhookTGPythonService,
+  getTGPythonTokenService,
   getConnectionStatusService,
-  getTelegramCodeService
+  getTGPythonCodeService,
+  getWAGOQRCodeService,
+  registerWebhookWAGOService
 } from "../services/service";
 
 export default {
@@ -354,9 +362,7 @@ export default {
       // get connection status
       this.isLoading = true;
       for (var i = 0; i < this.senders.length; i++) {
-        if (
-          this.senders[i].type == "WA.Python"
-        ) {
+        if (this.senders[i].type == "WA.Python") {
           await getConnectionStatusService(
             this.senders[i].apitoken,
             this.senders[i].type
@@ -391,7 +397,7 @@ export default {
       }
     },
 
-    async qrRegister() {
+    async qrScan() {
       try {
         if (this.sender.name == "" || this.sender.phone == "") {
           this.$emit("showFailMessage", "Phone and Name is required");
@@ -399,35 +405,41 @@ export default {
         }
         if (this.sender.apitoken == "" || this.sender.apitoken == null) {
           // create token
-          await getWrapperTokenService(this.sender.name, "Pwd123!@#")
-            .then(response => {
-              console.log("qrRegister name before create then");
-              console.log(response);
-              if (
-                response.status == 200 &&
-                response.data.token &&
-                response.data.token != null
-              ) {
-                this.sender.apitoken = response.data.token;
-                this.$emit("showSuccessMessage", this.sender.apitoken);
+          if (this.sender.type == "WA.Python") {
+            await getWAPythonTokenService(this.sender.name, "Pwd123!@#")
+              .then(response => {
+                if (
+                  response.status == 200 &&
+                  response.data.token &&
+                  response.data.token != null
+                ) {
+                  this.sender.apitoken = response.data.token;
+                  this.$emit("showSuccessMessage", this.sender.apitoken);
 
-                // if sender is in senders then save
-                const v = this.senders.findIndex(x => x.id == this.sender.id);
-                if (v >= 0) {
+                  // if sender is in senders then save
+                  const v = this.senders.findIndex(x => x.id == this.sender.id);
+                  if (v >= 0) {
+                    this.updateSender();
+                  }
+                } else {
+                  this.$emit(
+                    "showFailMessage",
+                    "Something went wrong, please try again"
+                  );
+                  return;
+                }
+              })
+              .catch(error => {
+                this.$emit("showFailMessage", error.message);
+                return;
+              });
+          } else if (this.sender.type == "WA.GO") {
+            this.sender.apitoken = uuid.v1();
+            const v = this.senders.findIndex(x => x.id == this.sender.id);
+                if(v >= 0) {
                   this.updateSender();
                 }
-              } else {
-                this.$emit(
-                  "showFailMessage",
-                  "Something went wrong, please try again"
-                );
-                return;
-              }
-            })
-            .catch(error => {
-              this.$emit("showFailMessage", error.message);
-              return;
-            });
+          }
         }
         // toke is already created
         // get qr image
@@ -436,28 +448,65 @@ export default {
           this.sender.apitoken != "" &&
           this.sender.apitoken != null
         ) {
-          getQRCodeService(this.sender.apitoken)
+          if (this.sender.type == "WA.Python") {
+            getWAPythonQRCodeService(this.sender.apitoken)
+              .then(response => {
+                if (
+                  response.status == 200 &&
+                  response.data != null &&
+                  response.data.qr != null
+                ) {
+                  this.qrcode = "data:image/png;base64, " + response.data.qr;
+                } else {
+                  this.qrcode = "";
+                  this.$emit(
+                    "showFailMessage",
+                    "Something went wrong, try again please"
+                  );
+                }
+              })
+              .catch(error => {
+                this.$emit("showFailMessage", error.message);
+              });
+          } else if(this.sender.type == "WA.GO") {
+            await getWAGOQRCodeService(this.sender.apitoken)
             .then(response => {
-              if (
-                response.status == 200 &&
-                response.data != null &&
-                response.data.qr != null
-              ) {
-                this.qrcode = "data:image/png;base64, " + response.data.qr;
+              if(response.status == 200 && response.data.base64 && response.data.base64 != null) {
+                this.qrcode = "data:image/png;base64, " + response.data.base64;
+
               } else {
                 this.qrcode = "";
-                this.$emit(
-                  "showFailMessage",
-                  "Something went wrong, try again please"
-                );
+                this.$emit("showFailMessage", "Something went wrong, please try again");
               }
             })
             .catch(error => {
+              this.qrcode = "";
               this.$emit("showFailMessage", error.message);
+                return;
             });
+          }
         }
       } catch (e) {
         console.log(e);
+      }
+    },
+
+    qrRegister() {
+      if(this.sender.apitoken != "" && this.sender.apitoken != null && this.qrcode != "" && this.qrcode != null) {
+        registerWebhookWAGOService(this.sender.apitoken)
+        .then(response => {
+          if(response.status == 200) {
+            this.$emit("showSuccessMessage", "Hook is successfully registered");
+          } else {
+            this.$emit("showFailMessage", "Something went wrong with register hook");
+          }
+        })
+        .catch(error => {
+          this.$emit("showFailMessage", error.message);
+        })
+      } else {
+        this.$emit("showFailMessage", "Please Get QR code and scan it first");
+        return;
       }
     },
 
@@ -488,7 +537,7 @@ export default {
         return;
       }
       if (this.sender.apitoken == "" || this.sender.apitoken == null) {
-        await getTelegramTokenService(this.sender.name, "Pwd123!@#")
+        await getTGPythonTokenService(this.sender.name, "Pwd123!@#")
           .then(response => {
             if (response.status == 200 && response.data.token != null) {
               this.sender.apitoken = response.data.token;
@@ -512,7 +561,7 @@ export default {
       }
       if (this.sender.apitoken != "" && this.sender.apitoken != null) {
         // request code
-        getTelegramCodeService(this.sender.apitoken, this.sender.phone)
+        getTGPythonCodeService(this.sender.apitoken, this.sender.phone)
           .then(response => {
             if (response.status == 200) {
               this.$emit(
@@ -538,7 +587,7 @@ export default {
         this.sender.apitoken != "" &&
         this.sender.phone != ""
       ) {
-        submitTelegramCodeService(
+        submitTGPythonCodeService(
           this.sender.apitoken,
           this.sender.phone,
           this.telecode,
@@ -551,7 +600,7 @@ export default {
                 "Successfully register your number"
               );
               // register webhook url
-              attachWebhookTelegramService(
+              attachWebhookTGPythonService(
                 this.sender.apitoken,
                 this.sender.phone
               )

@@ -1,6 +1,7 @@
 import axios from 'axios';
+import qs from 'qs';
 
-import {BASE_URL, WrapperURL, TelegramURL} from './endpoints';
+import {BASE_URL, WAPythonURL, TGPythonURL, WAGOURL, WAGOHookURL} from './endpoints';
 
 
 export function login(username, password) {
@@ -232,11 +233,11 @@ export function getBulkData() {
 }
 
 
-//////////// Whatsapp Wrapper API //////////////////////////////////
-export async function getQRCodeService(token) {
+//////////// Whatsapp Python API //////////////////////////////////
+export async function getWAPythonQRCodeService(token) {
   return axios({
     method: 'POST',
-    url: `${WrapperURL}/qr/`,
+    url: `${WAPythonURL}/qr/`,
     timeout: 5000,
     headers: {
       'Accept': 'application/json',
@@ -248,10 +249,10 @@ export async function getQRCodeService(token) {
   });
 }
 // get wrapper token
-export async function getWrapperTokenService(username, password) {
+export async function getWAPythonTokenService(username, password) {
   return await axios({
     method: 'POST',
-    url: `${WrapperURL}/get_token/`,
+    url: `${WAPythonURL}/get_token/`,
     timeout: 5000,
     headers: {
       'Accept': 'application/json',
@@ -265,13 +266,43 @@ export async function getWrapperTokenService(username, password) {
 }
 ////////////////////////////////////////////////////////////////////
 
-
-//////////// Telegram API //////////////////////////////////////////
-// request telegram code
-export async function getTelegramCodeService(token, phone) {
+///////////// Whatsapp Golang API //////////////////////////////////
+export async function getWAGOQRCodeService(token) {
   return axios({
     method: 'POST',
-    url: `${TelegramURL}/request_code/`,
+    url: `${WAGOURL}/api/profile/scanqr`,
+    timeout: 5000,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    data: qs.stringify({
+      'sessionId': token
+    })
+  });
+}
+export async function registerWebhookWAGOService(token) {
+  return axios({
+    method: 'POST',
+    url: `${WAGOURL}/api/profile/hook/set`,
+    timeout: 5000,
+    // headers: {
+    //   'Content-Type': 'application/x-www-form-urlencoded'
+    // },
+    data: qs.stringify({
+      'sessionId': token,
+      'hookURL': WAGOHookURL
+    })
+  });
+}
+////////////////////////////////////////////////////////////////////
+
+//////////// Telegram Python API ///////////////////////////////////
+// request telegram code
+export async function getTGPythonCodeService(token, phone) {
+  return axios({
+    method: 'POST',
+    url: `${TGPythonURL}/request_code/`,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -283,10 +314,10 @@ export async function getTelegramCodeService(token, phone) {
   });
 }
 // submit telegram code
-export async function submitTelegramCodeService(token, phone, code, password) {
+export async function submitTGPythonCodeService(token, phone, code, password) {
   return axios({
     method: 'POST',
-    url: `${TelegramURL}/submit_code/`,
+    url: `${TGPythonURL}/submit_code/`,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -300,10 +331,10 @@ export async function submitTelegramCodeService(token, phone, code, password) {
   });
 }
 // get telegram token
-export async function getTelegramTokenService(username, password) {
+export async function getTGPythonTokenService(username, password) {
   return await axios({
     method: 'POST',
-    url: `${TelegramURL}/get_token/`,
+    url: `${TGPythonURL}/get_token/`,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -315,10 +346,10 @@ export async function getTelegramTokenService(username, password) {
   });
 }
 // attach_webhook
-export async function attachWebhookTelegramService(token, phone) {
+export async function attachWebhookTGPythonService(token, phone) {
   return axios({
     method: 'POST',
-    url: `${TelegramURL}/attach_webhook/`,
+    url: `${TGPythonURL}/attach_webhook/`,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -335,9 +366,9 @@ export async function attachWebhookTelegramService(token, phone) {
 export async function getConnectionStatusService(token, type) {
   let url = "";
   if(type == 'WrapperAPI') {
-    url = `${WrapperURL}/status/`;
+    url = `${WAPythonURL}/status/`;
   } else if(type == 'TelegramAPI') {
-    url = `${TelegramURL}/status/`;
+    url = `${TGPythonURL}/status/`;
   } 
   return await axios({
     method: 'POST',
