@@ -32,7 +32,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in senders" :key="item.id" v-bind:person="item" v-bind:class="{'tr-blocked' : item.conn == 'off'}">
+            <tr
+              v-for="item in senders"
+              :key="item.id"
+              v-bind:person="item"
+              v-bind:class="{'tr-blocked' : item.conn == 'off'}"
+            >
               <td>
                 <!-- <span>{{item.status}}</span> -->
                 <span v-show="item.status==0" class="status-dot status-con"></span>
@@ -49,7 +54,11 @@
               <td v-if="user.role.type=='admin'">{{item.user.username}}</td>
               <td>
                 <!-- Connect / Disconnect -->
-                <button class="btn btn-sm" @click="onConn(item)" v-bind:class="{'btn-danger' : item.conn == 'off', 'btn-success' : item.conn == 'on'}">
+                <button
+                  class="btn btn-sm"
+                  @click="onConn(item)"
+                  v-bind:class="{'btn-danger' : item.conn == 'off', 'btn-success' : item.conn == 'on'}"
+                >
                   <span>{{item.conn}}</span>
                 </button>
                 <!-- Edit button -->
@@ -359,23 +368,34 @@ export default {
       // get connection status
       this.isLoading = true;
       for (var i = 0; i < this.senders.length; i++) {
-        if (this.senders[i].type == "WA.Python") {
-          await getConnectionStatusService(
-            this.senders[i].apitoken,
-            this.senders[i].type
-          )
-            .then(response => {
-              if (response.status == 200) {
-                this.senders[i].status = this.getStatusCode(
-                  response.data.internetStatus
-                );
-              } else {
+        if (
+          this.senders[i].type == "WA.Python" ||
+          this.senders[i].type == "WA.GO"
+        ) {
+          if (this.senders[i].conn == "off") {
+            this.senders[i].status = 1;
+          } else {
+            await getConnectionStatusService(
+              this.senders[i].apitoken,
+              this.senders[i].type
+            )
+              .then(response => {
+                if (response.status == 200) {
+                  if (this.senders[i].type == "WA.Python") {
+                    this.senders[i].status = this.getStatusCode(
+                      response.data.internetStatus
+                    );
+                  } else if (this.senders[i].type == "WA.GO") {
+                    this.senders[i].status = 0;
+                  }
+                } else {
+                  this.senders[i].status = 2;
+                }
+              })
+              .catch(() => {
                 this.senders[i].status = 2;
-              }
-            })
-            .catch(() => {
-              this.senders[i].status = 2;
-            });
+              });
+          }
         } else {
           this.senders[i].status = 3;
         }
@@ -479,7 +499,10 @@ export default {
                     { errorCorrectionLevel: "H" },
                     (err, url) => {
                       if (err) {
-                        this.$emit("showFailMessage", "Something went wrong while parsing qrcode");
+                        this.$emit(
+                          "showFailMessage",
+                          "Something went wrong while parsing qrcode"
+                        );
                       } else {
                         this.qrcode = url;
                       }
@@ -710,6 +733,6 @@ th {
   background-color: red;
 }
 .status-not-config {
-  background-color: lightblue;
+  background-color: lightcoral;
 }
 </style>

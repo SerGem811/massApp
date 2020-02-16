@@ -296,6 +296,7 @@ export async function registerWebhookWAGOService(token) {
     })
   });
 }
+
 ////////////////////////////////////////////////////////////////////
 
 //////////// Telegram Python API ///////////////////////////////////
@@ -365,10 +366,24 @@ export async function attachWebhookTGPythonService(token, phone) {
 
 /////////////////////  get status //////////////////////////////////
 export async function getConnectionStatusService(token, type) {
+  // go-lang connection status
+  if(type == 'WA.GO') {
+    return await axios({
+      method: 'GET',
+      url: `${WAGOURL}/api/profile/me?sessionId=${token}`,
+      timeout:5000,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  // Python WhatsApp and Telegram
   let url = "";
-  if (type == 'WrapperAPI') {
+  if (type == 'WA.Python') {
     url = `${WAPythonURL}/status/`;
-  } else if (type == 'TelegramAPI') {
+  } else if (type == 'TG.Python') {
     url = `${TGPythonURL}/status/`;
   }
   return await axios({
