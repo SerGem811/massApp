@@ -138,7 +138,7 @@
                   <option value="WA.Python">WA.Python</option>
                   <option value="WA.Official">WA.Official</option>
                   <option value="TG.Python">TG.Python</option>
-                  <option value="WA.GO">TG.GO</option>
+                  <option value="WA.GO">WA.GO</option>
                 </select>
               </div>
               <div class="form-group">
