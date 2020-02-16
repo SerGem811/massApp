@@ -1,7 +1,8 @@
 import axios from 'axios';
 import qs from 'qs';
+import querystring from 'querystring';
 
-import {BASE_URL, WAPythonURL, TGPythonURL, WAGOURL, WAGOHookURL} from './endpoints';
+import { BASE_URL, WAPythonURL, TGPythonURL, WAGOURL, WAGOHookURL } from './endpoints';
 
 
 export function login(username, password) {
@@ -12,7 +13,7 @@ export function login(username, password) {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
-    data : {
+    data: {
       identifier: username,
       password: password
     }
@@ -41,7 +42,7 @@ export function register(username, password, email) {
 // get all auto-reply
 export function getAutoRepliesService(userid) {
   let url = `${BASE_URL}/autoreplies`;
-  if(userid != -1) {
+  if (userid != -1) {
     url += '?user=' + userid;
   }
   return axios({
@@ -93,11 +94,11 @@ export async function deleteAutoReplyService(id) {
 
 //////////////// response services ////////////////////////////////
 // get all responses
-export async function getResponsesService (pagination, reply_id) {
+export async function getResponsesService(pagination, reply_id) {
   let start = (pagination.currentPage * pagination.pageSize) - pagination.pageSize
   let limit = pagination.pageSize
 
-  let url =  BASE_URL + '/responsewapps?autoreply=' + reply_id + '&_start=' + start + '&_limit=' + limit + '&_sort=order:asc'
+  let url = BASE_URL + '/responsewapps?autoreply=' + reply_id + '&_start=' + start + '&_limit=' + limit + '&_sort=order:asc'
 
   return await axios({
     method: 'GET',
@@ -160,10 +161,10 @@ export function countResponsesService() {
 // get all senders
 export async function getSenderService(userid) {
   let url = `${BASE_URL}/senderdata`;
-  if(userid != -1) {
+  if (userid != -1) {
     url += '?user=' + userid;
   }
-  return await axios ({
+  return await axios({
     method: 'GET',
     url,
     headers: {
@@ -274,10 +275,11 @@ export async function getWAGOQRCodeService(token) {
     timeout: 5000,
     headers: {
       'Accept': 'application/json',
+      'Cache-Control': 'no-cache',
       'Content-Type': 'application/x-www-form-urlencoded'
     },
-    data: qs.stringify({
-      'sessionId': token
+    data: querystring.stringify({
+      sessionId: token
     })
   });
 }
@@ -365,11 +367,11 @@ export async function attachWebhookTGPythonService(token, phone) {
 /////////////////////  get status //////////////////////////////////
 export async function getConnectionStatusService(token, type) {
   let url = "";
-  if(type == 'WrapperAPI') {
+  if (type == 'WrapperAPI') {
     url = `${WAPythonURL}/status/`;
-  } else if(type == 'TelegramAPI') {
+  } else if (type == 'TelegramAPI') {
     url = `${TGPythonURL}/status/`;
-  } 
+  }
   return await axios({
     method: 'POST',
     url,

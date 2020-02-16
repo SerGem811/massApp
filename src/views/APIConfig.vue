@@ -32,7 +32,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in senders" :key="item.id" v-bind:person="item">
+            <tr v-for="item in senders" :key="item.id" v-bind:person="item" v-bind:class="{'tr-blocked' : item.conn == 'off'}">
               <td>
                 <!-- <span>{{item.status}}</span> -->
                 <span v-show="item.status==0" class="status-dot status-con"></span>
@@ -49,7 +49,7 @@
               <td v-if="user.role.type=='admin'">{{item.user.username}}</td>
               <td>
                 <!-- Connect / Disconnect -->
-                <button class="btn-danger btn btn-sm" @click="onConn(item)">
+                <button class="btn btn-sm" @click="onConn(item)" v-bind:class="{'btn-danger' : item.conn == 'off', 'btn-success' : item.conn == 'on'}">
                   <span>{{item.conn}}</span>
                 </button>
                 <!-- Edit button -->
@@ -135,11 +135,7 @@
               <div class="form-group">
                 <div v-show="sender.type=='WA.Python' || sender.type == 'WA.GO'">
                   <img class="img-qr" v-bind:src="qrcode" />
-                  <button
-                    type="button"
-                    class="btn btn-success m-l-10"
-                    @click="qrScan"
-                  >Get QR Code</button>
+                  <button type="button" class="btn btn-success m-l-10" @click="qrScan">Get QR Code</button>
                   <button
                     type="button"
                     class="btn btn-success m-l-10"
@@ -205,6 +201,7 @@
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/vue-loading.css";
 import { uuid } from "vue-uuid";
+import QRCode from "qrcode";
 
 import $ from "jquery";
 import {
@@ -434,11 +431,11 @@ export default {
                 return;
               });
           } else if (this.sender.type == "WA.GO") {
-            this.sender.apitoken = uuid.v1();
+            this.sender.apitoken = uuid.v4();
             const v = this.senders.findIndex(x => x.id == this.sender.id);
-                if(v >= 0) {
-                  this.updateSender();
-                }
+            if (v >= 0) {
+              this.updateSender();
+            }
           }
         }
         // toke is already created
@@ -468,22 +465,39 @@ export default {
               .catch(error => {
                 this.$emit("showFailMessage", error.message);
               });
-          } else if(this.sender.type == "WA.GO") {
+          } else if (this.sender.type == "WA.GO") {
             await getWAGOQRCodeService(this.sender.apitoken)
-            .then(response => {
-              if(response.status == 200 && response.data.base64 && response.data.base64 != null) {
-                this.qrcode = "data:image/png;base64, " + response.data.base64;
-
-              } else {
+              .then(response => {
+                if (
+                  response.status == 200 &&
+                  response.data.base64 &&
+                  response.data.base64 != null
+                ) {
+                  // this.qrcode = "data:image/png;base64, " + response.data.base64;
+                  QRCode.toDataURL(
+                    response.data.base64,
+                    { errorCorrectionLevel: "H" },
+                    (err, url) => {
+                      if (err) {
+                        this.$emit("showFailMessage", "Something went wrong while parsing qrcode");
+                      } else {
+                        this.qrcode = url;
+                      }
+                    }
+                  );
+                } else {
+                  this.qrcode = "";
+                  this.$emit(
+                    "showFailMessage",
+                    "Something went wrong, please try again"
+                  );
+                }
+              })
+              .catch(error => {
                 this.qrcode = "";
-                this.$emit("showFailMessage", "Something went wrong, please try again");
-              }
-            })
-            .catch(error => {
-              this.qrcode = "";
-              this.$emit("showFailMessage", error.message);
+                this.$emit("showFailMessage", error.message);
                 return;
-            });
+              });
           }
         }
       } catch (e) {
@@ -492,18 +506,29 @@ export default {
     },
 
     qrRegister() {
-      if(this.sender.apitoken != "" && this.sender.apitoken != null && this.qrcode != "" && this.qrcode != null) {
+      if (
+        this.sender.apitoken != "" &&
+        this.sender.apitoken != null &&
+        this.qrcode != "" &&
+        this.qrcode != null
+      ) {
         registerWebhookWAGOService(this.sender.apitoken)
-        .then(response => {
-          if(response.status == 200) {
-            this.$emit("showSuccessMessage", "Hook is successfully registered");
-          } else {
-            this.$emit("showFailMessage", "Something went wrong with register hook");
-          }
-        })
-        .catch(error => {
-          this.$emit("showFailMessage", error.message);
-        })
+          .then(response => {
+            if (response.status == 200) {
+              this.$emit(
+                "showSuccessMessage",
+                "Hook is successfully registered"
+              );
+            } else {
+              this.$emit(
+                "showFailMessage",
+                "Something went wrong with register hook"
+              );
+            }
+          })
+          .catch(error => {
+            this.$emit("showFailMessage", error.message);
+          });
       } else {
         this.$emit("showFailMessage", "Please Get QR code and scan it first");
         return;
@@ -650,6 +675,10 @@ th {
   padding: 5px;
   text-align: center;
   overflow-wrap: break-word;
+}
+
+.tr-blocked {
+  background-color: #888 !important;
 }
 
 .input-required {
