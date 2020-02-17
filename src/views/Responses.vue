@@ -113,8 +113,8 @@
               </td>
               <td>{{ item.name }}</td>
               <td>{{ item.message }}</td>
-              <td>
-                <label class="float-left;">{{ item.response }}</label>
+              <td class="text-align-left">
+                <span>{{ item.response }}</span>
               </td>
               <td></td>
             </tr>
@@ -451,6 +451,9 @@ td {
 }
 .tr-blocked {
   background-color: #888 !important;
+}
+.text-align-left {
+  text-align: left!important;
 }
 </style>
 
