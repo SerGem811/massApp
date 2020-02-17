@@ -51,3 +51,7 @@
 .d-flex {
   display: flex;
 }
+
+.font-bold {
+  font-weight: bold;
+}

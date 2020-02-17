@@ -1,7 +1,7 @@
 import axios from 'axios';
 import qs from 'qs';
 
-import { BASE_URL, WAPythonURL, TGPythonURL, WAGOURL, WAGOHookURL } from './endpoints';
+import { BASE_URL, WAPythonURL, TGPythonURL, WAGOURL, WAGOHookURL, WAGOBulkSendURL } from './endpoints';
 
 
 export function login(username, password) {
@@ -294,6 +294,18 @@ export async function registerWebhookWAGOService(token) {
       'sessionId': token,
       'hookURL': WAGOHookURL
     })
+  });
+}
+export async function sendWAGOBulkSendService(senderId, message, phones) {
+  return await axios({
+    method: 'POST',
+    url: `${WAGOBulkSendURL}`,
+    timeout: 300000,
+    data: {
+      senderId: senderId,
+      message: message,
+      phones: phones
+    }
   });
 }
 

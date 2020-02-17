@@ -42,7 +42,13 @@
               <BulkData />
             </el-tab-pane>
 
-            <el-tab-pane name="4" label="Message Massive"></el-tab-pane>
+            <el-tab-pane name="4" label="Message Massive">
+              <MassiveMessage
+                v-bind:user="user"
+                @showSuccessMessage="showSuccessMessage"
+                @showFailMessage="showFailMessage"
+              />
+            </el-tab-pane>
 
             <el-tab-pane name="5" label="Chat">
               <Chat />
@@ -59,6 +65,7 @@ import AutoReply from "./AutoReply";
 import BulkData from "./BulkData";
 import APIConfig from "./APIConfig";
 import Chat from "./Chat";
+import MassiveMessage from "./MassiveMessage";
 
 import {
   getAutoRepliesService
@@ -79,7 +86,8 @@ export default {
     AutoReply,
     BulkData,
     APIConfig,
-    Chat
+    Chat,
+    MassiveMessage
   },
   methods: {
     loadReplies() {

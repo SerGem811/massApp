@@ -30,11 +30,11 @@
         <table class="table table-striped">
           <thead class="thead-dark">
             <tr>
-              <th style="width: 5%" scope="col">Order</th>
-              <th style="width: 20%"></th>
+              <th style="width: 7%" scope="col">Order</th>
+              <th style="width: 13%"></th>
               <th style="width: 10%" scope="col">Name</th>
               <th style="width: 10%" scope="col">Trigger</th>
-              <th style="width: 55%" scope="col">Resposta</th>
+              <th style="width: 60%" scope="col">Resposta</th>
               <th></th>
             </tr>
           </thead>
@@ -437,19 +437,20 @@ export default {
 </script>
 
 <style scoped>
-td {
-  width: 90px;
+.table {
+  table-layout: fixed;
 }
 .table td,
 th {
   padding: 5px;
   text-align: center;
+  overflow-wrap: break-word;
+}
+td {
+  width: 90px;
 }
 .tr-blocked {
   background-color: #888 !important;
-}
-.font-bold {
-  font-weight: bold;
 }
 </style>
 
