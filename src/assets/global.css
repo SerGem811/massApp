@@ -55,3 +55,7 @@
 .font-bold {
   font-weight: bold;
 }
+
+.white-space-line {
+  white-space: pre-line;
+}

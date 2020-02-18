@@ -23,7 +23,7 @@
       <div class="col-md-1"></div>
       <div class="col-md-10">
         <label class="col-form-label font-bold">Message</label>
-        <VueEmoji ref="emoji" width="100%" height="100" @input="onInput" :value="message" />
+        <VueEmoji ref="emoji" width="100%" height="250" @input="onInput" :value="message" class="white-space-line" />
       </div>
     </div>
 
@@ -115,7 +115,12 @@ export default {
         this.phones != ""
       ) {
         // parse phone number
-        const v = this.phones.split(/[ ,\n\t]/);
+        let p = this.phones;
+        p = p.replace(/\+/g, '');
+        p = p.replace(/\(/g, '');
+        p = p.replace(/\)/g, '');
+        p = p.replace(/-/g, '');
+        const v = p.split(/[ ,\n\t]/);
         for(let i = 0; i < v.length ; i++) {
           var isnum = /^\d+$/.test(v[i]);
           if(!isnum) {
@@ -125,7 +130,8 @@ export default {
         }
         this.count = v.length;
         this.phonesL = v.join(',');
-        $("#confirmModal").modal("show");
+        console.log(this.phonesL);
+        // $("#confirmModal").modal("show");
       } else {
         this.$emit("showFailMessage", "Please fill all input");
       }

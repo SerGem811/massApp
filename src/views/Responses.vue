@@ -114,7 +114,7 @@
               <td>{{ item.name }}</td>
               <td>{{ item.message }}</td>
               <td class="text-align-left">
-                <span>{{ item.response }}</span>
+                <span class="white-space-line">{{ item.response }}</span>
               </td>
               <td></td>
             </tr>
@@ -165,9 +165,10 @@
                 <VueEmoji
                   ref="emoji"
                   width="100%"
-                  height="100"
+                  height="250"
                   @input="onInput"
                   :value="response.response"
+                  class="white-space-line"
                 />
                 <div
                   v-if="submitted && !response.response"
@@ -366,10 +367,13 @@ export default {
           .then(response => {
             if (response.status == 200) {
               this.responses = response.data;
-              for(var i = 0; i < this.responses.length ; i++) {
-                // const r = this.responses[i].response;
-                this.responses[i].response = this.ressponses[i].response.replace(/↵/g, /\n/);
-              }
+              // const len = this.responses.length;
+              // debugger;
+              // for(var i = 0; i < len ; i++) {
+              //   const r = this.responses[i].response;
+              //   console.log(r);
+              //   this.responses[i].response = this.ressponses[i].response.replace(/↵/g, /\n/);
+              // }
               this.updateCount();
             }
           })
