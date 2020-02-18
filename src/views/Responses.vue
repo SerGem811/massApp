@@ -366,6 +366,10 @@ export default {
           .then(response => {
             if (response.status == 200) {
               this.responses = response.data;
+              for(var i = 0; i < this.responses.length ; i++) {
+                // const r = this.responses[i].response;
+                this.responses[i].response = this.ressponses[i].response.replace(/↵/g, /\n/);
+              }
               this.updateCount();
             }
           })
@@ -415,6 +419,7 @@ export default {
     // load configuration
     if (this.replies && this.replies.length > 0) {
       this.reply = this.replies[0];
+      console.log(this.reply);
     } else {
       this.reply = null;
     }
