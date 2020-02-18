@@ -2,7 +2,7 @@
   <section>
     <div class="row">
       <div class="col-md-2">
-        <span class="float-right font-bold m-t-5">Sender</span>
+        <span class="float-right font-bold m-t-5">Sender : </span>
       </div>
       <div class="col-md-3">
         <select class="form-control m-b-5" @change="onChangeSender($event)">
@@ -11,11 +11,21 @@
         </select>
       </div>
       <div class="col-md-1">
-        <span class="float-right font-bold m-t-5">Title</span>
+        <span class="float-right font-bold m-t-5">Title : </span>
       </div>
       <div class="col-md-4">
         <input type="text" class="form-control" id="massive-title" v-model="title" />
       </div>
+      <div class="col-md-2"></div>
+    </div>
+    <div class="row m-t-30px">
+      <div class="col-md-2">
+        <span class="float-right font-bold m-t-5">Repeat : </span>
+      </div>
+      <div class="col-md-2">
+        <input type="number" class="form-control" v-model="times" />
+      </div>
+      <div class="col-md-5"></div>
       <div class="col-md-2">
         <button type="button" class="btn-success btn float-right" @click="confirmSend">Send</button>
       </div>
@@ -90,7 +100,8 @@ export default {
       message: "",
       phones: "",
       phonesL: [],
-      count: 0
+      count: 0,
+      times: 1
     };
   },
   components: {
@@ -128,10 +139,15 @@ export default {
         p = p.replace(/\(/g, "");
         p = p.replace(/\)/g, "");
         p = p.replace(/-/g, "");
-        const v = p.split(/[ ,\n\t]/);
+        p = p.replace(/ /g, "");
+        const v = p.split(/[,\n\t]/);
         for (let i = 0; i < v.length; i++) {
           var isnum = /^\d+$/.test(v[i]);
           if (!isnum) {
+            this.$emit("showFailMessage", "Please correct the phone : " + v[i]);
+            return;
+          }
+          if(v[i].length < 7) {
             this.$emit("showFailMessage", "Please correct the phone : " + v[i]);
             return;
           }
@@ -145,7 +161,7 @@ export default {
     },
     sendMessage() {
       this.closeModal();
-      sendWAGOBulkSendService(this.sender.id, this.message, this.phonesL)
+      sendWAGOBulkSendService(this.sender.id, this.message, this.phonesL, this.times)
         .then(response => {
           console.log(response);
         })

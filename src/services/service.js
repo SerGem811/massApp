@@ -296,7 +296,7 @@ export async function registerWebhookWAGOService(token) {
     })
   });
 }
-export async function sendWAGOBulkSendService(senderId, message, phones) {
+export async function sendWAGOBulkSendService(senderId, message, phones, times) {
   return await axios({
     method: 'POST',
     url: `${WAGOBulkSendURL}`,
@@ -304,7 +304,8 @@ export async function sendWAGOBulkSendService(senderId, message, phones) {
     data: {
       senderId: senderId,
       message: message,
-      phones: phones
+      phones: phones,
+      times: times,
     }
   });
 }
