@@ -6,6 +6,7 @@
       </div>
       <div class="col-md-3">
         <select class="form-control m-b-5" @change="onChangeSender($event)">
+          <option :value="-1">-----------</option>
           <option v-for="item in senders" :key="item.id" :value="item.id">{{item.name}}</option>
         </select>
       </div>
@@ -23,7 +24,14 @@
       <div class="col-md-1"></div>
       <div class="col-md-10">
         <label class="col-form-label font-bold">Message</label>
-        <VueEmoji ref="emoji" width="100%" height="250" @input="onInput" :value="message" class="white-space-line" />
+        <VueEmoji
+          ref="emoji"
+          width="100%"
+          height="250"
+          @input="onInput"
+          :value="message"
+          class="white-space-line"
+        />
       </div>
     </div>
 
@@ -68,7 +76,7 @@
   </section>
 </template>
 <script>
-import { getSenderService,sendWAGOBulkSendService } from "../services/service";
+import { getSenderService, sendWAGOBulkSendService } from "../services/service";
 import VueEmoji from "emoji-vue";
 import $ from "jquery";
 export default {
@@ -116,22 +124,21 @@ export default {
       ) {
         // parse phone number
         let p = this.phones;
-        p = p.replace(/\+/g, '');
-        p = p.replace(/\(/g, '');
-        p = p.replace(/\)/g, '');
-        p = p.replace(/-/g, '');
+        p = p.replace(/\+/g, "");
+        p = p.replace(/\(/g, "");
+        p = p.replace(/\)/g, "");
+        p = p.replace(/-/g, "");
         const v = p.split(/[ ,\n\t]/);
-        for(let i = 0; i < v.length ; i++) {
+        for (let i = 0; i < v.length; i++) {
           var isnum = /^\d+$/.test(v[i]);
-          if(!isnum) {
-            this.$emit("showFailMessage", "Please correct the phone : " + v[i] );
+          if (!isnum) {
+            this.$emit("showFailMessage", "Please correct the phone : " + v[i]);
             return;
           }
         }
         this.count = v.length;
-        this.phonesL = v.join(',');
-        console.log(this.phonesL);
-        // $("#confirmModal").modal("show");
+        this.phonesL = v.join(",");
+        $("#confirmModal").modal("show");
       } else {
         this.$emit("showFailMessage", "Please fill all input");
       }
@@ -139,19 +146,23 @@ export default {
     sendMessage() {
       this.closeModal();
       sendWAGOBulkSendService(this.sender.id, this.message, this.phonesL)
-      .then(response => {
-        console.log(response);
-      })
-      .catch(error => {
-        console.log(error.message);
-      });
+        .then(response => {
+          console.log(response);
+        })
+        .catch(error => {
+          console.log(error.message);
+        });
     },
     closeModal() {
       $("#confirmModal").modal("hide");
     },
     onChangeSender(event) {
       if (event.target.value) {
-        this.sender = this.senders.find(x => x.id == event.target.value);
+        if (event.target.value == "-1") {
+          this.sender = {};
+        } else {
+          this.sender = this.senders.find(x => x.id == event.target.value);
+        }
       }
     }
   },
