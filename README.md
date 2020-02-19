@@ -1,24 +1,18 @@
-# mapp
+# Zap front-end
 
-## Project setup
-```
-npm install
-```
+## 1. Configure environment
+  ```
+    Go to the /src/services/endpoints.js
+    Set url for the server there
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+  ```
 
-### Compiles and minifies for production
-```
-npm run build
-```
+## 2. Project Setup
+  ```
+    npm install
+  ```
 
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## 3. Run project
+  ```
+    npm run serve -- --port PORT
+  ```

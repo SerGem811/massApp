@@ -1,6 +1,5 @@
 const BASE_URL = 'http://172.107.180.59:1337';
 
-
 const WAPythonURL = 'http://172.107.180.59:8001';
 
 const WAGOURL = 'http://172.107.180.59:4000';
