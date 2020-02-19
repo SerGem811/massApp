@@ -2,7 +2,7 @@
   <section>
     <div class="row">
       <div class="col-md-2">
-        <span class="float-right font-bold m-t-5">Sender : </span>
+        <span class="float-right font-bold m-t-5">Sender :</span>
       </div>
       <div class="col-md-3">
         <select class="form-control m-b-5" @change="onChangeSender($event)">
@@ -11,16 +11,16 @@
         </select>
       </div>
       <div class="col-md-1">
-        <span class="float-right font-bold m-t-5">Title : </span>
+        <span class="float-right font-bold m-t-5">Title :</span>
       </div>
       <div class="col-md-4">
         <input type="text" class="form-control" id="massive-title" v-model="title" />
       </div>
       <div class="col-md-2"></div>
     </div>
-    <div class="row m-t-30px">
+    <div class="row m-t-10">
       <div class="col-md-2">
-        <span class="float-right font-bold m-t-5">Repeat : </span>
+        <span class="float-right font-bold m-t-5">Repeat :</span>
       </div>
       <div class="col-md-2">
         <input type="number" class="form-control" v-model="times" />
@@ -37,7 +37,7 @@
         <VueEmoji
           ref="emoji"
           width="100%"
-          height="250"
+          height="150"
           @input="onInput"
           :value="message"
           class="white-space-line"
@@ -49,8 +49,19 @@
       <div class="col-md-1"></div>
       <div class="col-md-10">
         <label class="col-form-label font-bold">Phone List</label>
-        <h6 class="font-description">*you can use comma, space and enter for split number</h6>
+        <h6 class="font-description">*you can use comma and enter for split number</h6>
+      </div>
+    </div>
+    <div class="row m-b-30">
+      <div class="col-md-1"></div>
+      <div class="col-md-4">
         <textarea class="form-control" style="height: 500px;" v-model="phones"></textarea>
+      </div>
+      <div class="col-md-1">
+        <button type="button" class="btn-success btn" @click="parseNumber">Parse</button>
+      </div>
+      <div class="col-md-5">
+        <textarea class="form-control" style="height: 500px;" v-model="phonesL" readonly></textarea>
       </div>
     </div>
     <div
@@ -113,6 +124,7 @@ export default {
         this.message = event.data;
       }
     },
+
     async refreshPage() {
       await getSenderService(this.user.id)
         .then(response => {
@@ -126,14 +138,26 @@ export default {
           this.$emit("showFailMessage", error.message);
         });
     },
+
     confirmSend() {
       if (
         this.sender.id &&
         this.title != "" &&
         this.message != "" &&
-        this.phones != ""
+        this.phonesL != ""
       ) {
         // parse phone number
+
+        this.count = this.phonesL.length;
+        
+        $("#confirmModal").modal("show");
+      } else {
+        this.$emit("showFailMessage", "Please fill all input");
+      }
+    },
+
+    parseNumber() {
+      if (this.phones != "") {
         let p = this.phones;
         p = p.replace(/\+/g, "");
         p = p.replace(/\(/g, "");
@@ -141,27 +165,33 @@ export default {
         p = p.replace(/-/g, "");
         p = p.replace(/ /g, "");
         const v = p.split(/[,\n\t]/);
+        let arr = [];
         for (let i = 0; i < v.length; i++) {
           var isnum = /^\d+$/.test(v[i]);
           if (!isnum) {
             this.$emit("showFailMessage", "Please correct the phone : " + v[i]);
-            return;
+            continue;
           }
-          if(v[i].length < 7) {
+          if (v[i].length < 7) {
             this.$emit("showFailMessage", "Please correct the phone : " + v[i]);
-            return;
+            continue;
           }
+          arr.push(v[i]);
         }
-        this.count = v.length;
-        this.phonesL = v.join(",");
-        $("#confirmModal").modal("show");
-      } else {
-        this.$emit("showFailMessage", "Please fill all input");
+        this.phonesL = v.join("\n");
       }
     },
+
     sendMessage() {
       this.closeModal();
-      sendWAGOBulkSendService(this.sender.id, this.message, this.phonesL, this.times)
+
+      const pl = this.phonesL.replace(/\n/g, ",");
+      sendWAGOBulkSendService(
+        this.sender.id,
+        this.message,
+        pl,
+        this.times
+      )
         .then(response => {
           console.log(response);
         })

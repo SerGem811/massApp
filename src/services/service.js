@@ -238,7 +238,6 @@ export async function getWAPythonQRCodeService(token) {
   return axios({
     method: 'POST',
     url: `${WAPythonURL}/qr/`,
-    timeout: 5000,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -253,7 +252,6 @@ export async function getWAPythonTokenService(username, password) {
   return await axios({
     method: 'POST',
     url: `${WAPythonURL}/get_token/`,
-    timeout: 5000,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -271,7 +269,6 @@ export async function getWAGOQRCodeService(token) {
   return axios({
     method: 'POST',
     url: `${WAGOURL}/api/profile/scanqr`,
-    timeout: 5000,
     headers: {
       'Accept': 'application/json',
       'Cache-Control': 'no-cache',
@@ -286,7 +283,6 @@ export async function registerWebhookWAGOService(token) {
   return axios({
     method: 'POST',
     url: `${WAGOURL}/api/profile/hook/set`,
-    timeout: 5000,
     // headers: {
     //   'Content-Type': 'application/x-www-form-urlencoded'
     // },
@@ -350,8 +346,10 @@ export async function getTGPythonTokenService(username, password) {
   return await axios({
     method: 'POST',
     url: `${TGPythonURL}/get_token/`,
+    corssDomain: true,
     headers: {
       'Accept': 'application/json',
+      'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     },
     data: {
@@ -383,8 +381,8 @@ export async function getConnectionStatusService(token, type) {
   if(type == 'WA.GO') {
     return await axios({
       method: 'GET',
+      timeout: 5000,
       url: `${WAGOURL}/api/profile/me?sessionId=${token}`,
-      timeout:5000,
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'

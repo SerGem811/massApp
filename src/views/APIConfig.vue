@@ -351,9 +351,6 @@ export default {
         .then(async response => {
           if (response.status == 200) {
             this.senders = response.data;
-            // for (var i = 0; i < this.senders.length; i++) {
-            //   this.senders[i].status = 2;
-            // }
           } else {
             this.senders = [];
           }
@@ -399,9 +396,9 @@ export default {
         } else {
           this.senders[i].status = 3;
         }
+        this.$forceUpdate();
       }
       this.isLoading = false;
-      this.$forceUpdate();
     },
 
     getStatusCode(val) {

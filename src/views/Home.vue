@@ -53,6 +53,9 @@
             <el-tab-pane name="5" label="Chat">
               <Chat />
             </el-tab-pane>
+
+            <el-tab-pane name="7" label="Admin">
+            </el-tab-pane>
           </el-tabs>
         </div>
       </div>
