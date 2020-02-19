@@ -72,7 +72,7 @@
           <div class="modal-body">
             <form>
               <div class="form-group">
-                <span>Sending message to {{count}} phones</span>
+                <span>Sending message to {{count}} phones for {{times}} times</span>
               </div>
             </form>
           </div>
