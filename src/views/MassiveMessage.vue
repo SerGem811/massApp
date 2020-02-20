@@ -25,7 +25,13 @@
       <div class="col-md-2">
         <input type="number" class="form-control" v-model="times" />
       </div>
-      <div class="col-md-5"></div>
+      <div class="col-md-2">
+        <span class="float-right font-bold m-t-5"> Delay :</span>
+      </div>
+      <div class="col-md-2">
+        <input type="number" class="form-control" v-model="delay" />
+      </div>
+      <div class="col-md-1"></div>
       <div class="col-md-2">
         <button type="button" class="btn-success btn float-right" @click="confirmSend">Send</button>
       </div>
@@ -112,7 +118,8 @@ export default {
       phones: "",
       phonesL: [],
       count: 0,
-      times: 1
+      times: 1,
+      delay: 100
     };
   },
   components: {
@@ -190,7 +197,8 @@ export default {
         this.sender.id,
         this.message,
         pl,
-        this.times
+        this.times,
+        this.delay
       )
         .then(response => {
           if(response.status == '200') {
