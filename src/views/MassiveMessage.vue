@@ -147,8 +147,6 @@ export default {
         this.phonesL != ""
       ) {
         // parse phone number
-
-        this.count = this.phonesL.length;
         
         $("#confirmModal").modal("show");
       } else {
@@ -178,7 +176,8 @@ export default {
           }
           arr.push(v[i]);
         }
-        this.phonesL = v.join("\n");
+        this.count = arr.length;
+        this.phonesL = arr.join("\n");
       }
     },
 
@@ -186,6 +185,7 @@ export default {
       this.closeModal();
 
       const pl = this.phonesL.replace(/\n/g, ",");
+
       sendWAGOBulkSendService(
         this.sender.id,
         this.message,
@@ -193,10 +193,14 @@ export default {
         this.times
       )
         .then(response => {
-          console.log(response);
+          if(response.status == '200') {
+            this.$emit('showSuccessMessage', 'Bulk messages are in process');
+          } else {
+            this.$emit('showFailMessage', 'Something went wrong in bulk message');  
+          }
         })
-        .catch(error => {
-          console.log(error.message);
+        .catch(() => {
+          this.$emit('showFailMessage', 'Something went wrong in bulk message');
         });
     },
     closeModal() {
