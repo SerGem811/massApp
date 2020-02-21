@@ -10,7 +10,9 @@ Vue.use(VueRouter)
 
 
 const routes = [
-  { path: '/', name: 'home', component: Home },
+  { path: '/', name: 'home', component: Home, props: {default: true, mainTab: "1"} },
+  { path: '/response', name: 'configuration', component: Home, props: {default: true, mainTab: "1"}},
+  { path: '/configuration', name: 'configuration', component: Home, props: {default: true, mainTab: "3"}},
   { path: '/login', name: 'login', component: Login },
   { path: '/register', name: 'register', component: Register },
   { path: '/chat', name: 'chat', component: Chat },

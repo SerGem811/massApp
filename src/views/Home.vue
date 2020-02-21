@@ -75,9 +75,10 @@ import {
 } from "../services/service";
 
 export default {
+  props: ["mainTab"],
   data() {
     return {
-      mainTab: "1",
+      // mainTab: "1",
       user: "",
       senders: [],
       replies: []
