@@ -10,9 +10,14 @@ Vue.use(VueRouter)
 
 
 const routes = [
-  { path: '/', name: 'home', component: Home, props: {default: true, mainTab: "1"} },
-  { path: '/response', name: 'configuration', component: Home, props: {default: true, mainTab: "1"}},
-  { path: '/configuration', name: 'configuration', component: Home, props: {default: true, mainTab: "3"}},
+  { path: '/', name: 'home', component: Home, props: {default: true, mTab: "page-resposta"} },
+  { path: '/page-resposta', name: 'page-resposta', component: Home, props: {default: true, mTab: "page-resposta"}},
+  { path: '/page-reply', name: 'page-reply', component: Home, props: {default: true, mTab: "page-reply"}},
+  { path: '/page-config', name: 'page-config', component: Home, props: {default: true, mTab: "page-config"}},
+  { path: '/page-import', name: 'page-import', component: Home, props: {default: true, mTab: "page-import"}},
+  { path: '/page-bulksend', name: 'page-bulksend', component: Home, props: {default: true, mTab: "page-bulksend"}},
+  { path: '/page-chat', name: 'page-chat', component: Home, props: {default: true, mTab: "page-chat"}},
+  { path: '/page-admin', name: 'page-admin', component: Home, props: {default: true, mTab: "page-admin"}},
   { path: '/login', name: 'login', component: Login },
   { path: '/register', name: 'register', component: Register },
   { path: '/chat', name: 'chat', component: Chat },

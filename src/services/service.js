@@ -292,7 +292,7 @@ export async function registerWebhookWAGOService(token) {
     })
   });
 }
-export async function sendWAGOBulkSendService(senderId, message, phones, times, delay) {
+export async function sendWAGOBulkSendService(senderId, message, phones, times, delay, attachUrl, attachType) {
   return await axios({
     method: 'POST',
     url: `${WAGOBulkSendURL}`,
@@ -302,7 +302,9 @@ export async function sendWAGOBulkSendService(senderId, message, phones, times, 
       message: message,
       phones: phones,
       times: times,
-      delay: delay
+      delay: delay,
+      attachUrl : attachUrl,
+      attachType: attachType
     }
   });
 }

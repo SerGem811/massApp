@@ -27,7 +27,8 @@
 
 <script>
 import { BASE_URL } from "../services/endpoints";
-import { setBulkData, getBulkData } from "../services/service";
+import { getBulkData } from "../services/service";
+// import { setBulkData, getBulkData } from "../services/service";
 
 export default {
   data() {
@@ -39,25 +40,26 @@ export default {
   methods: {
     async successUpload(event) {
       let response = event[0];
-      try {
-        await setBulkData({
-          url: response.url,
-          start: new Date(),
-          processed: false,
-          whatsappMode: true
-        });
-        this.getAllBulkData();
-        this.$notify({
-          title: "Success",
-          message: "CSV was saved.",
-          type: "success"
-        });
-      } catch (error) {
-        this.$notify.error({
-          title: "error",
-          message: error.message
-        });
-      }
+      console.log(response);
+      // try {
+      //   await setBulkData({
+      //     url: response.url,
+      //     start: new Date(),
+      //     processed: false,
+      //     whatsappMode: true
+      //   });
+      //   this.getAllBulkData();
+      //   this.$notify({
+      //     title: "Success",
+      //     message: "CSV was saved.",
+      //     type: "success"
+      //   });
+      // } catch (error) {
+      //   this.$notify.error({
+      //     title: "error",
+      //     message: error.message
+      //   });
+      // }
     },
 
     getAllBulkData() {

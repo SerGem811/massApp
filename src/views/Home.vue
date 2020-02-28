@@ -9,8 +9,8 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-          <el-tabs v-model="mainTab" class="home-tabs">
-            <el-tab-pane name="1" label="Auto Resposta">
+          <el-tabs v-model="mainTab" class="home-tabs" @tab-click="onTabChange">
+            <el-tab-pane name="page-resposta" label="Auto Resposta">
               <Responses
                 v-bind:user="user"
                 v-bind:replies="replies"
@@ -19,7 +19,7 @@
               />
             </el-tab-pane>
 
-            <el-tab-pane name="6" label="Auto-reply List">
+            <el-tab-pane name="page-reply" label="Auto-reply List">
               <AutoReply
                 v-bind:user="user"
                 v-bind:replies="replies"
@@ -29,7 +29,7 @@
               />
             </el-tab-pane>
 
-            <el-tab-pane name="3" label="Configuration">
+            <el-tab-pane name="page-config" label="Configuration">
               <APIConfig
                 v-bind:user="user"
                 v-bind:replies="replies"
@@ -38,11 +38,11 @@
               />
             </el-tab-pane>
 
-            <el-tab-pane name="2" label="BulkData Import">
+            <el-tab-pane name="page-import" label="BulkData Import">
               <BulkData />
             </el-tab-pane>
 
-            <el-tab-pane name="4" label="Message Massive">
+            <el-tab-pane name="page-bulksend" label="Message Massive">
               <MassiveMessage
                 v-bind:user="user"
                 @showSuccessMessage="showSuccessMessage"
@@ -50,11 +50,11 @@
               />
             </el-tab-pane>
 
-            <el-tab-pane name="5" label="Chat">
+            <el-tab-pane name="page-chat" label="Chat">
               <Chat />
             </el-tab-pane>
 
-            <el-tab-pane name="7" label="Admin">
+            <el-tab-pane name="page-admin" label="Admin">
             </el-tab-pane>
           </el-tabs>
         </div>
@@ -75,10 +75,10 @@ import {
 } from "../services/service";
 
 export default {
-  props: ["mainTab"],
+  props: ["mTab"],
   data() {
     return {
-      // mainTab: "1",
+      mainTab: "1",
       user: "",
       senders: [],
       replies: []
@@ -142,6 +142,10 @@ export default {
         title: "Success",
         message: message
       });
+    },
+
+    onTabChange(e) {
+      this.$router.push(e.name);
     }
   },
   created() {
@@ -151,6 +155,14 @@ export default {
   },
   mounted() {
     this.loadReplies();
+  },
+  watch: {
+    mTab: {
+      immediate: true,
+      handler() {
+        this.mainTab = this.mTab
+      }
+    }
   }
 };
 </script>

@@ -26,7 +26,7 @@
         <input type="number" class="form-control" v-model="times" />
       </div>
       <div class="col-md-2">
-        <span class="float-right font-bold m-t-5"> Delay :</span>
+        <span class="float-right font-bold m-t-5">Delay :</span>
       </div>
       <div class="col-md-2">
         <input type="number" class="form-control" v-model="delay" />
@@ -48,6 +48,28 @@
           :value="message"
           class="white-space-line"
         />
+      </div>
+    </div>
+    <div class="row m-t-10">
+      <div class="col-md-1"></div>
+      <div class="col-md-10">
+        <div class="float-right">
+          <el-radio-group v-model="attachType" class="float-left m-r-10" size="small" @change="onTypeChange">
+            <el-radio-button label="Doc"></el-radio-button>
+            <el-radio-button label="Video"></el-radio-button>
+            <el-radio-button label="Audio"></el-radio-button>
+            <el-radio-button label="Image"></el-radio-button>
+          </el-radio-group>
+          <el-upload
+            :accept="acceptType"
+            class="float-left m-l-10"
+            :action="upload_url"
+            name="files"
+            :on-success="successUpload"
+          >
+            <el-button size="small" type="primary">Attach file</el-button>
+          </el-upload>
+        </div>
       </div>
     </div>
 
@@ -104,6 +126,8 @@
 </template>
 <script>
 import { getSenderService, sendWAGOBulkSendService } from "../services/service";
+import { UPLOAD_URL } from "../services/endpoints";
+
 import VueEmoji from "emoji-vue";
 import $ from "jquery";
 export default {
@@ -119,7 +143,12 @@ export default {
       phonesL: [],
       count: 0,
       times: 1,
-      delay: 100
+      delay: 100,
+      upload_url: UPLOAD_URL,
+      attachFileUrl: "",
+      attachFileType: "",
+      acceptType: ".doc, .docx, .pdf",
+      attachType: "Doc"
     };
   },
   components: {
@@ -129,6 +158,14 @@ export default {
     onInput(event) {
       if (event && event.data) {
         this.message = event.data;
+      }
+    },
+
+    async successUpload(event) {
+      let response = event[0];
+      if (response) {
+        this.attachFileUrl = response.url;
+        this.attachFileType = this.attachType;
       }
     },
 
@@ -154,7 +191,7 @@ export default {
         this.phonesL != ""
       ) {
         // parse phone number
-        
+
         $("#confirmModal").modal("show");
       } else {
         this.$emit("showFailMessage", "Please fill all input");
@@ -193,27 +230,37 @@ export default {
 
       const pl = this.phonesL.replace(/\n/g, ",");
 
+      if(this.attachFileType == "") {
+        this.attachFileType = "Text";
+      }
       sendWAGOBulkSendService(
         this.sender.id,
         this.message,
         pl,
         this.times,
-        this.delay
+        this.delay,
+        this.attachFileUrl,
+        this.attachFileType
       )
         .then(response => {
-          if(response.status == '200') {
-            this.$emit('showSuccessMessage', 'Bulk messages are in process');
+          if (response.status == "200") {
+            this.$emit("showSuccessMessage", "Bulk messages are in process");
           } else {
-            this.$emit('showFailMessage', 'Something went wrong in bulk message');  
+            this.$emit(
+              "showFailMessage",
+              "Something went wrong in bulk message"
+            );
           }
         })
         .catch(() => {
-          this.$emit('showFailMessage', 'Something went wrong in bulk message');
+          this.$emit("showFailMessage", "Something went wrong in bulk message");
         });
     },
+
     closeModal() {
       $("#confirmModal").modal("hide");
     },
+
     onChangeSender(event) {
       if (event.target.value) {
         if (event.target.value == "-1") {
@@ -221,6 +268,20 @@ export default {
         } else {
           this.sender = this.senders.find(x => x.id == event.target.value);
         }
+      }
+    },
+
+    onTypeChange(val) {
+      
+      this.attachType = val;
+      if(val == "Doc") {
+        this.acceptType = ".doc, .docx, .pdf";
+      } else if(val == "Image") {
+        this.acceptType = "image/*";
+      } else if(val == "Video") {
+        this.acceptType = "video/*";
+      } else if(val == "Audio") {
+        this.acceptType = "audio/*";
       }
     }
   },
