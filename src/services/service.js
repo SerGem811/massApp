@@ -3,6 +3,7 @@ import qs from 'qs';
 
 import { BASE_URL, WA_Python_Url, TGPythonURL, WAGO_URL, WAGOHookURL, WAGOBulkSendURL } from './endpoints';
 
+const TIMER = 1200;
 
 export function login(username, password) {
   return axios({
@@ -169,7 +170,7 @@ export function countResponsesService() {
 ///////////////// sender services /////////////////////////////////
 // get all senders
 export async function getSenderService(userid) {
-  let url = `${BASE_URL}/senderdata`;
+  let url = `${BASE_URL}/senderdata?_sort=user:asc`;
   if (userid != -1) {
     url += '?user=' + userid;
   }
@@ -396,7 +397,7 @@ export async function getConnectionStatusService(token, type) {
   if(type == 'WA.GO') {
     return await axios({
       method: 'GET',
-      timeout: 5000,
+      timeout: TIMER,
       url: `${WAGO_URL}/api/profile/me?sessionId=${token}`,
       headers: {
         'Accept': 'application/json',
@@ -415,7 +416,7 @@ export async function getConnectionStatusService(token, type) {
   return await axios({
     method: 'POST',
     url,
-    timeout: 5000,
+    timeout: TIMER,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
