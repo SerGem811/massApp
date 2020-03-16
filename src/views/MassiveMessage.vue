@@ -125,18 +125,17 @@
   </section>
 </template>
 <script>
-import { getSenderService, sendWAGOBulkSendService } from "../services/service";
+import { sendWAGOBulkSendService } from "../services/service";
 import { UPLOAD_URL } from "../services/endpoints";
 
 import VueEmoji from "emoji-vue";
 import $ from "jquery";
 export default {
   name: "MassiveMessage",
-  props: ["user"],
+  props: ["user", "senders"],
   data() {
     return {
       sender: {},
-      senders: [],
       title: "",
       message: "",
       phones: "",
@@ -167,24 +166,6 @@ export default {
         this.attachFileUrl = response.url;
         this.attachFileType = this.attachType;
       }
-    },
-
-    async refreshPage() {
-      let userid = -1;
-      if(this.user.role.type != "admin") {
-        userid = this.user.id;
-      }
-      await getSenderService(userid)
-        .then(response => {
-          if (response.status == 200) {
-            this.senders = response.data;
-          } else {
-            this.senders = [];
-          }
-        })
-        .catch(error => {
-          this.$emit("showFailMessage", error.message);
-        });
     },
 
     confirmSend() {
@@ -290,7 +271,6 @@ export default {
     }
   },
   mounted() {
-    this.refreshPage();
   }
 };
 </script>

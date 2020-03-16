@@ -27,11 +27,11 @@
               <th style="width: 15%" scope="col">Reply</th>
               <!-- <th style="width: 30%" scope="col">Endpoint</th> -->
               <!-- <th style="width: 20%" scope="col">API token</th> -->
-              <th style="width: 8%" scope="col" v-if="user.role.type=='admin'">User</th>
+              <th style="width: 8%" scope="col" v-if="user.role.type=='admin'">Owner</th>
               <th style="width: 12%" scope="col"></th>
             </tr>
           </thead>
-          <tbody>
+          <draggable v-model="senders" tag="tbody">
             <tr
               v-for="item in senders"
               :key="item.id"
@@ -93,7 +93,7 @@
                 </el-popconfirm>
               </td>
             </tr>
-          </tbody>
+          </draggable>
         </table>
       </div>
     </div>
@@ -117,6 +117,14 @@
           </div>
           <div class="modal-body">
             <form>
+              <!-- owner -->
+              <div class="form-group" v-show="isAdmin == true">
+                <label for="config-owner" class="col-form-label">Owner</label>
+                <select class="form-control" v-model="sender.user.id">
+                  <option v-for="item in users" :key="item.id" :value="item.id">{{item.username}}</option>
+                </select>
+              </div>
+              <!-- phone number -->
               <div class="form-group">
                 <label for="config-phone" class="col-form-label">Phone</label>
                 <input type="text" class="form-control" id="config-phone" v-model="sender.phone" />
@@ -125,11 +133,13 @@
                   class="input-required"
                 >Phone number is required</div>
               </div>
+              <!-- name -->
               <div class="form-group">
                 <label for="config-name" class="col-form-label">Name</label>
                 <input type="text" class="form-control" id="config-name" v-model="sender.name" />
                 <div v-if="submitted && !sender.name" class="input-required">Name is required</div>
               </div>
+              <!-- type -->
               <div class="form-group">
                 <label for="config-type" class="col-form-label">Type</label>
                 <select class="form-control" v-model="sender.type">
@@ -141,6 +151,7 @@
                   <option value="WA.GO">WA.GO</option>
                 </select>
               </div>
+              <!-- whatsapp qr, telegram code -->
               <div class="form-group">
                 <div v-show="sender.type=='WA.Python' || sender.type == 'WA.GO'">
                   <img class="img-qr" v-bind:src="qrcode" />
@@ -164,6 +175,7 @@
                   <button type="button" class="float-right m-t-5" @click="getTeleCode">Request Code</button>
                 </div>
               </div>
+              <!-- endpoint -->
               <div class="form-group">
                 <label for="config-endpoint" class="col-form-label">Endpoint</label>
                 <input
@@ -177,6 +189,7 @@
                   class="input-required"
                 >Endpoint is required</div>
               </div>
+              <!-- api token -->
               <div
                 class="form-group"
                 v-show="sender.type != 'TG.Python' && sender.type != 'WA.Python' && sender.type != 'WA.GO'"
@@ -188,6 +201,7 @@
                   class="input-required"
                 >API token is required</div>
               </div>
+              <!-- auto reply -->
               <div class="form-group">
                 <label for="config-reply" class="col-form-label">Auto-reply</label>
                 <select class="form-control" v-model="sender.autoreply.id">
@@ -211,10 +225,9 @@ import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/vue-loading.css";
 import { uuid } from "vue-uuid";
 import QRCode from "qrcode";
-
+import draggable from "vuedraggable";
 import $ from "jquery";
 import {
-  getSenderService,
   updateSenderService,
   createSenderService,
   deleteSenderService,
@@ -231,7 +244,7 @@ import {
 
 export default {
   name: "APIConfig",
-  props: ["user", "replies"],
+  props: ["user", "replies", "senders", "users"],
   data() {
     return {
       sender: {
@@ -241,13 +254,14 @@ export default {
         apitoken: "",
         endpoint: "",
         autoreply: {},
-        conn: "on"
+        conn: "on",
+        user: {},
       },
-      senders: [],
       submitted: false,
       telecode: "",
       qrcode: "",
-      isLoading: false
+      isLoading: false,
+      isAdmin: false,
     };
   },
   methods: {
@@ -266,8 +280,9 @@ export default {
       $("#senderModal").modal("hide");
     },
 
-    updateSender(refreshPage) {
+    updateSender() {
       this.submitted = true;
+      debugger;
       if (this.sender.id && this.sender.id != null) {
         updateSenderService(this.sender)
           .then(response => {
@@ -276,10 +291,8 @@ export default {
                 "showSuccessMessage",
                 "Sender is successfully updated"
               );
-              if (refreshPage) {
-                this.emptySender();
-                this.refreshPage();
-              }
+              this.refreshPage();
+              this.$emit("loadSenders");
             } else {
               this.$emit("showFailMessage", "Cannot update the Sender");
             }
@@ -289,7 +302,7 @@ export default {
           });
       } else {
         // create new
-        this.sender.user = this.user.id;
+        // this.sender.user = this.user.id;
         if (this.sender.apitoken == "") {
           this.$emit("showFailMessage", "Please authenticate first");
           return;
@@ -301,10 +314,8 @@ export default {
                 "showSuccessMessage",
                 "Sender is successfully created"
               );
-              if (refreshPage) {
-                this.emptySender();
-                this.refreshPage();
-              }
+              this.$emit("loadSenders");
+              this.refreshPage();
             } else {
               this.$emit("showFailMessage", "Cannot create the Sender");
             }
@@ -322,7 +333,8 @@ export default {
         name: "",
         apitoken: "",
         autoreply: {},
-        conn: "on"
+        conn: "on",
+        user: this.user
       };
       this.qrcode = "";
     },
@@ -332,7 +344,7 @@ export default {
         .then(response => {
           if (response.status === 200) {
             this.$emit("showSuccessMessage", "Sender is successfully removed");
-            this.refreshPage();
+            this.$emit("loadSenders");
           } else {
             this.$emit("showFailMessage", "Cannot delete the sender");
           }
@@ -346,22 +358,6 @@ export default {
       this.closeSenderModal();
       this.submitted = false;
       this.emptySender();
-      var userid = -1;
-      if(this.user.role.type != "admin") {
-        userid = this.user.id;
-      }
-      await getSenderService(userid)
-        .then(async response => {
-          if (response.status == 200) {
-            this.senders = response.data;
-          } else {
-            this.senders = [];
-          }
-        })
-        .catch(error => {
-          this.$emit("showFailMessage", error.message);
-        });
-      this.refreshStatus();
     },
 
     async refreshStatus() {
@@ -569,7 +565,7 @@ export default {
         .then(response => {
           if (response.status == 200) {
             this.$emit("showSuccessMessage", "Connection status is updated");
-            // this.refreshPage();
+            this.$emit("loadSenders");
           }
         })
         .catch(error => {
@@ -679,12 +675,30 @@ export default {
     }
   },
   components: {
-    Loading
+    Loading,
+    draggable
   },
   async mounted() {
     // load configurations
     await this.refreshPage();
-    this.refreshStatus();
+  },
+  watch: {
+    senders: {
+      immediate: true,
+      handler() {
+        this.refreshStatus();
+      }
+    },
+    user: {
+      immediate: true,
+      handler() {
+        if(this.user.role.type == 'admin') {
+          this.isAdmin = true;
+        } else { 
+          this.isAdmin = false;
+        }
+      }
+    }
   }
 };
 </script>

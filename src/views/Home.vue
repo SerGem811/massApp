@@ -33,6 +33,9 @@
               <APIConfig
                 v-bind:user="user"
                 v-bind:replies="replies"
+                v-bind:senders="senders"
+                v-bind:users="users"
+                @loadSenders="loadSenders"
                 @showSuccessMessage="showSuccessMessage"
                 @showFailMessage="showFailMessage"
               />
@@ -45,6 +48,7 @@
             <el-tab-pane name="page-bulksend" label="Message Massive">
               <MassiveMessage
                 v-bind:user="user"
+                v-bind:senders="senders"
                 @showSuccessMessage="showSuccessMessage"
                 @showFailMessage="showFailMessage"
               />
@@ -71,7 +75,9 @@ import Chat from "./Chat";
 import MassiveMessage from "./MassiveMessage";
 
 import {
-  getAutoRepliesService
+  getAutoRepliesService,
+  getSenderService,
+  getUsersService,
 } from "../services/service";
 
 export default {
@@ -81,7 +87,8 @@ export default {
       mainTab: "page-resposta",
       user: "",
       senders: [],
-      replies: []
+      replies: [],
+      users: [],
     };
   },
   name: "home",
@@ -94,6 +101,7 @@ export default {
     MassiveMessage
   },
   methods: {
+    // get replies from api
     loadReplies() {
       let userid = -1;
       if (this.user.role.type != "admin") {
@@ -101,33 +109,71 @@ export default {
       }
       getAutoRepliesService(userid)
         .then(response => {
-          this.updateReplies(response);
+          if(response.status == 200) {
+            if(response.data.length > 0) {
+              this.replies = response.data;
+            } else {
+              this.updateErrorReplies("0 replies found");
+            }
+          } else {
+            this.updateErrorReplies("Something went wrong while loading replies");
+          }
         })
         .catch(error => {
-          this.updateErrorReplies(error);
+          this.updateErrorReplies(error.message);
         });
     },
 
-    emptyReplies() {
-      this.replies = [];
+    // get senders from api
+    loadSenders() {
+      let userid = -1;
+      if(this.user.role.type != "admin") {
+        userid = this.user.id;
+      }
+      getSenderService(userid)
+      .then(response => {
+        if(response.status == 200) {
+          if(response.data.length > 0) {
+            this.senders = response.data;
+          } else {
+            this.updateErrorSenders('0 senders found');
+          }
+        } else {
+          this.updateErrorSenders('Something went wrong while loading configurations');
+        }
+      })
+      .catch(error => {
+        this.updateErrorSenders(error.message);
+      });
+
     },
 
-    updateReplies(response) {
-      if (response.status === 200) {
-        if (response.data.length > 0) {
-          this.replies = response.data;
-        } else {
-          this.emptyReplies();
-        }
-      } else {
-        this.showFailMessage("Cannot load the configuration data");
-        this.emptyReplies();
+    // get users from api
+    loadUsers() {
+      if(this.user.role.type == 'admin') {
+        getUsersService()
+          .then(response => {
+            if(response.status == 200 ) {
+              this.users = response.data;
+            } else {
+              this.users = [];
+            }
+          })
+          .catch(error => {
+            this.showFailMessage(error.message);
+            this.users = [];
+          });
       }
     },
 
     updateErrorReplies(error) {
       this.showFailMessage(error.message);
-      this.emptyReplies();
+      this.replies = [];
+    },
+
+    updateErrorSenders(error) {
+      this.showFailMessage(error);
+      this.senders = [];
     },
 
     showFailMessage(message) {
@@ -155,6 +201,9 @@ export default {
   },
   mounted() {
     this.loadReplies();
+    this.loadSenders();
+    this.loadUsers();
+
   },
   watch: {
     mTab: {

@@ -52,8 +52,7 @@
 <script>
 import router from "../router/index";
 import {
-  getAllSenderdata,
-  getSenderdata,
+  getSenderService
   // getContacts
 } from "../services/service";
 
@@ -73,9 +72,7 @@ export default {
       router.push("/");
     },
     onSearchName() {},
-    onChangeNumber() {
-
-    },
+    onChangeNumber() {}
     // loadUser(senderId) {
 
     // }
@@ -86,31 +83,22 @@ export default {
     const user = JSON.parse(v);
     this.user = user;
 
-    if (this.user.role.type === "admin") {
-        getAllSenderdata()
-          .then(response => {
-            if (response.status === 200) {
-              this.senders = response.data;
-            } else {
-              this.showFailMessage("Cannot load the configuration data");
-            }
-          })
-          .catch(error => {
-            this.showFailMessage(error.message);
-          });
-      } else {
-        getSenderdata(this.user.id)
-          .then(response => {
-            if (response.status === 200) {
-              this.senders = response.data;
-            } else {
-              this.showFailMessage("Cannot load the configuration data");
-            }
-          })
-          .catch(error => {
-            this.showFailMessage(error.message);
-          });
-      }
+    let userid = -1;
+    if (this.user.role.type != "admin") {
+      userid = this.user.id;
+    }
+
+    getSenderService(userid)
+      .then(response => {
+        if (response.status === 200) {
+          this.senders = response.data;
+        } else {
+          this.showFailMessage("Cannot load the configuration data");
+        }
+      })
+      .catch(error => {
+        this.showFailMessage(error.message);
+      });
   }
 };
 </script>

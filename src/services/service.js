@@ -36,6 +36,16 @@ export function register(username, password, email) {
   });
 }
 
+export function getUsersService() {
+  return axios({
+    method: 'GET',
+    url: `${BASE_URL}/users`,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  });
+}
 
 ///////////////// auto-reply services /////////////////////////////
 // get all auto-reply
@@ -279,6 +289,7 @@ export async function getWAGOQRCodeService(token) {
     })
   });
 }
+
 export async function registerWebhookWAGOService(token) {
   return axios({
     method: 'POST',
@@ -292,6 +303,7 @@ export async function registerWebhookWAGOService(token) {
     })
   });
 }
+
 export async function sendWAGOBulkSendService(senderId, message, phones, times, delay, attachUrl, attachType) {
   return await axios({
     method: 'POST',
