@@ -31,14 +31,14 @@
               <th style="width: 12%" scope="col"></th>
             </tr>
           </thead>
-          <draggable v-model="senders" tag="tbody">
+          <draggable v-model="senders" tag="tbody" handle=".handle">
             <tr
               v-for="item in senders"
               :key="item.id"
               v-bind:person="item"
               v-bind:class="{'tr-blocked' : item.conn == 'off'}"
             >
-              <td>
+              <td class="handle">
                 <!-- <span>{{item.status}}</span> -->
                 <span v-show="item.status==0" class="status-dot status-con"></span>
                 <span v-show="item.status==1" class="status-dot status-discon"></span>
@@ -255,13 +255,14 @@ export default {
         endpoint: "",
         autoreply: {},
         conn: "on",
-        user: {},
+        user: {}
       },
       submitted: false,
       telecode: "",
       qrcode: "",
       isLoading: false,
       isAdmin: false,
+      isInit: true
     };
   },
   methods: {
@@ -686,15 +687,18 @@ export default {
     senders: {
       immediate: true,
       handler() {
-        this.refreshStatus();
+        if (this.isInit) {
+          this.refreshStatus();
+          this.isInit = false;
+        }
       }
     },
     user: {
       immediate: true,
       handler() {
-        if(this.user.role.type == 'admin') {
+        if (this.user.role.type == "admin") {
           this.isAdmin = true;
-        } else { 
+        } else {
           this.isAdmin = false;
         }
       }

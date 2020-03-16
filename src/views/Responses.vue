@@ -38,14 +38,14 @@
               <th></th>
             </tr>
           </thead>
-          <draggable v-model="responses" tag="tbody" @update="updateOrder">
+          <draggable v-model="responses" tag="tbody" @update="updateOrder" handle=".handle">
             <tr
               v-for="item in responses"
               :key="item.id"
               v-bind:class="{'tr-blocked' : item.blocked}"
             >
-              <td scope="row">{{ item.order }}</td>
-              <td>
+              <td scope="row" class="handle">{{ item.order }}</td>
+              <td class="handle">
                 <!-- Edit button -->
                 <button
                   class="btn-danger btn btn-sm"
@@ -111,8 +111,8 @@
                   </button>
                 </el-popconfirm>
               </td>
-              <td>{{ item.name }}</td>
-              <td>{{ item.message }}</td>
+              <td class="handle">{{ item.name }}</td>
+              <td class="handle">{{ item.message }}</td>
               <td class="text-align-left">
                 <span class="white-space-line">{{ item.response }}</span>
               </td>
