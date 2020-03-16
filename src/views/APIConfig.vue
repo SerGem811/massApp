@@ -687,7 +687,7 @@ export default {
     senders: {
       immediate: true,
       handler() {
-        if (this.isInit) {
+        if (this.isInit && this.senders.length > 0) {
           this.refreshStatus();
           this.isInit = false;
         }
