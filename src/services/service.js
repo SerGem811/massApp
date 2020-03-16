@@ -1,7 +1,7 @@
 import axios from 'axios';
 import qs from 'qs';
 
-import { BASE_URL, WAPythonURL, TGPythonURL, WAGOURL, WAGOHookURL, WAGOBulkSendURL } from './endpoints';
+import { BASE_URL, WA_Python_Url, TGPythonURL, WAGO_URL, WAGOHookURL, WAGOBulkSendURL } from './endpoints';
 
 
 export function login(username, password) {
@@ -237,7 +237,7 @@ export function getBulkData() {
 export async function getWAPythonQRCodeService(token) {
   return axios({
     method: 'POST',
-    url: `${WAPythonURL}/qr/`,
+    url: `${WA_Python_Url}/qr/`,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -251,7 +251,7 @@ export async function getWAPythonQRCodeService(token) {
 export async function getWAPythonTokenService(username, password) {
   return await axios({
     method: 'POST',
-    url: `${WAPythonURL}/get_token/`,
+    url: `${WA_Python_Url}/get_token/`,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -268,7 +268,7 @@ export async function getWAPythonTokenService(username, password) {
 export async function getWAGOQRCodeService(token) {
   return axios({
     method: 'POST',
-    url: `${WAGOURL}/api/profile/scanqr`,
+    url: `${WAGO_URL}/api/profile/scanqr`,
     headers: {
       'Accept': 'application/json',
       'Cache-Control': 'no-cache',
@@ -282,7 +282,7 @@ export async function getWAGOQRCodeService(token) {
 export async function registerWebhookWAGOService(token) {
   return axios({
     method: 'POST',
-    url: `${WAGOURL}/api/profile/hook/set`,
+    url: `${WAGO_URL}/api/profile/hook/set`,
     // headers: {
     //   'Content-Type': 'application/x-www-form-urlencoded'
     // },
@@ -385,7 +385,7 @@ export async function getConnectionStatusService(token, type) {
     return await axios({
       method: 'GET',
       timeout: 5000,
-      url: `${WAGOURL}/api/profile/me?sessionId=${token}`,
+      url: `${WAGO_URL}/api/profile/me?sessionId=${token}`,
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -396,7 +396,7 @@ export async function getConnectionStatusService(token, type) {
   // Python WhatsApp and Telegram
   let url = "";
   if (type == 'WA.Python') {
-    url = `${WAPythonURL}/status/`;
+    url = `${WA_Python_Url}/status/`;
   } else if (type == 'TG.Python') {
     url = `${TGPythonURL}/status/`;
   }

@@ -5,9 +5,7 @@ import Login from '../views/LoginPage.vue'
 import Register from '../views/RegisterPage.vue'
 import Chat from '../views/ChatView.vue'
 
-
 Vue.use(VueRouter)
-
 
 const routes = [
   { path: '/', name: 'home', component: Home, props: {default: true, mTab: "page-resposta"} },

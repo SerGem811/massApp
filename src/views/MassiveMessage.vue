@@ -170,7 +170,11 @@ export default {
     },
 
     async refreshPage() {
-      await getSenderService(this.user.id)
+      let userid = -1;
+      if(this.user.role.type != "admin") {
+        userid = this.user.id;
+      }
+      await getSenderService(userid)
         .then(response => {
           if (response.status == 200) {
             this.senders = response.data;

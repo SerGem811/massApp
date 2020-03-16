@@ -54,8 +54,8 @@
               <Chat />
             </el-tab-pane>
 
-            <el-tab-pane name="page-admin" label="Admin">
-            </el-tab-pane>
+            <!-- <el-tab-pane name="page-admin" label="Admin">
+            </el-tab-pane> -->
           </el-tabs>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default {
   props: ["mTab"],
   data() {
     return {
-      mainTab: "1",
+      mainTab: "page-resposta",
       user: "",
       senders: [],
       replies: []

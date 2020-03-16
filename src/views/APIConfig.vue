@@ -25,7 +25,7 @@
               <th style="width: 10%" scope="col">Name</th>
               <th style="width: 8%" scope="col">Type</th>
               <th style="width: 15%" scope="col">Reply</th>
-              <th style="width: 30%" scope="col">Endpoint</th>
+              <!-- <th style="width: 30%" scope="col">Endpoint</th> -->
               <!-- <th style="width: 20%" scope="col">API token</th> -->
               <th style="width: 8%" scope="col" v-if="user.role.type=='admin'">User</th>
               <th style="width: 12%" scope="col"></th>
@@ -49,7 +49,7 @@
               <td>{{item.name}}</td>
               <td>{{item.type}}</td>
               <td>{{item.autoreply != null ? item.autoreply.name : ""}}</td>
-              <td>{{item.endpoint}}</td>
+              <!-- <td>{{item.endpoint}}</td> -->
               <!-- <td>{{item.apitoken}}</td> -->
               <td v-if="user.role.type=='admin'">{{item.user.username}}</td>
               <td>
@@ -346,8 +346,11 @@ export default {
       this.closeSenderModal();
       this.submitted = false;
       this.emptySender();
-
-      await getSenderService(this.user.id)
+      var userid = -1;
+      if(this.user.role.type != "admin") {
+        userid = this.user.id;
+      }
+      await getSenderService(userid)
         .then(async response => {
           if (response.status == 200) {
             this.senders = response.data;
