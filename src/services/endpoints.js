@@ -11,7 +11,7 @@ const STATUS_DISCONNECT = 1;
 const STATUS_ERROR = 2;
 const STATUS_NOT_CONFIG = 3;
 
-const LINE_LIMIT = 3;
+const LINE_LIMIT = 5;
 
 export {
   BASE_URL,
