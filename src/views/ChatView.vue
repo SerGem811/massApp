@@ -79,7 +79,7 @@ export default {
   },
   mounted() {
     // load all user
-    const v = localStorage.getItem("userMass");
+    const v = localStorage.getItem("user-zap");
     const user = JSON.parse(v);
     this.user = user;
 

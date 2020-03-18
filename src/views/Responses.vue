@@ -273,6 +273,12 @@ export default {
     // when click save changes button in dialog
     updateResponse() {
       this.submitted = true;
+
+      // check state
+      if(this.response.name == "" || this.response.response == "" || this.response.message == "") {
+        return;
+      }
+
       if (this.response.id) {
         updateResponseService(this.response.id, this.response)
           .then(response => {
@@ -367,13 +373,6 @@ export default {
           .then(response => {
             if (response.status == 200) {
               this.responses = response.data;
-              // const len = this.responses.length;
-              // debugger;
-              // for(var i = 0; i < len ; i++) {
-              //   const r = this.responses[i].response;
-              //   console.log(r);
-              //   this.responses[i].response = this.ressponses[i].response.replace(/↵/g, /\n/);
-              // }
               this.updateCount();
             }
           })

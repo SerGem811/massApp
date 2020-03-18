@@ -2,7 +2,7 @@
   <section>
     <div class="row">
       <div class="col-md-2">
-        <span class="float-right font-bold m-t-5">Sender :</span>
+        <span class="float-right font-bold m-t-5">Phone :</span>
       </div>
       <div class="col-md-3">
         <select class="form-control m-b-5" @change="onChangeSender($event)">

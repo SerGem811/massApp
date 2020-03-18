@@ -4,15 +4,15 @@
       <h2>Login</h2>
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="email">Email</label>
           <input
             type="text"
-            v-model="username"
-            name="username"
+            v-model="email"
+            name="email"
             class="form-control"
-            :class="{'is-invalid': submitted && !username}"
+            :class="{'is-invalid': submitted && !email}"
           />
-          <div v-show="submitted && !username" class="invalid-feedback">Username is required</div>
+          <div v-show="submitted && !email" class="invalid-feedback">Username is required</div>
         </div>
         <div class="form-group">
           <label for="password">Password</label>
@@ -42,7 +42,7 @@ import { login } from "../services/service";
 export default {
   data() {
     return {
-      username: "",
+      email: "",
       password: "",
       submitted: false
     };
@@ -50,16 +50,17 @@ export default {
   methods: {
     handleSubmit() {
       this.submitted = true;
-      const { username, password } = this;
-      if (username && password) {
-        login(username, password)
+      const { email, password } = this;
+      if (email && password) {
+        login(email, password)
           .then(response => {
             if (response.status === 200) {
               if (response.data.user.confirmed === true) {
                 localStorage.setItem(
-                  "userMass",
+                  "user-zap",
                   JSON.stringify(response.data.user)
                 );
+                localStorage.setItem("jwt-zap", JSON.stringify(response.data.jwt));
                 router.push("/");
               } else {
                 this.$notify.warning({
@@ -84,7 +85,8 @@ export default {
     }
   },
   mounted() {
-    localStorage.removeItem("userMass");
+    localStorage.removeItem("user-zap");
+    localStorage.removeItem("jwt-zap");
   }
 };
 </script>

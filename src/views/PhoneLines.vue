@@ -4,13 +4,17 @@
     <div class="row">
       <div class="col-md-12">
         <div class="float-right">
-          <button type="success" class="btn-success btn m-r-10" @click="refreshStatus">Refresh</button>
+          <button
+            type="success"
+            class="btn-success btn m-r-10"
+            @click="refreshStatus(true)"
+          >Refreh All</button>
           <button
             type="success"
             class="btn-success btn m-r-10"
             data-toggle="modal"
             data-target="#senderModal"
-            @click="addSender"
+            @click="emptySender"
           >Add</button>
         </div>
       </div>
@@ -20,6 +24,7 @@
         <table class="table table-striped">
           <thead class="thead-dark">
             <tr>
+              <th style="width: 8%">Order</th>
               <th style="width: 5%" scope="col"></th>
               <th style="width: 12%" scope="col">Phone</th>
               <th style="width: 10%" scope="col">Name</th>
@@ -27,23 +32,23 @@
               <th style="width: 15%" scope="col">Reply</th>
               <!-- <th style="width: 30%" scope="col">Endpoint</th> -->
               <!-- <th style="width: 20%" scope="col">API token</th> -->
-              <th style="width: 8%" scope="col" v-if="user.role.type=='admin'">Owner</th>
-              <th style="width: 12%" scope="col"></th>
+              <th style="width: 10%" scope="col" v-if="user.role.type=='admin'">Owner</th>
+              <th style="width: 20%" scope="col"></th>
             </tr>
           </thead>
-          <draggable v-model="senders" tag="tbody" handle=".handle">
+          <draggable v-model="senders" tag="tbody" handle=".handle" @update="updateOrder">
             <tr
               v-for="item in senders"
               :key="item.id"
               v-bind:person="item"
               v-bind:class="{'tr-blocked' : item.conn == 'off'}"
             >
+              <td class="handle">{{item.order}}</td>
               <td class="handle">
-                <!-- <span>{{item.status}}</span> -->
-                <span v-show="item.status==0" class="status-dot status-con"></span>
-                <span v-show="item.status==1" class="status-dot status-discon"></span>
-                <span v-show="item.status==2" class="status-dot status-error"></span>
-                <span v-show="item.status==3" class="status-dot status-not-config"></span>
+                <span v-show="item.status==status_conn" class="status-dot status-con"></span>
+                <span v-show="item.status==status_disconn" class="status-dot status-discon"></span>
+                <span v-show="item.status==status_err" class="status-dot status-error"></span>
+                <span v-show="item.status==status_no_config" class="status-dot status-not-config"></span>
               </td>
               <td>{{item.phone}}</td>
               <td>{{item.name}}</td>
@@ -54,8 +59,11 @@
               <td v-if="user.role.type=='admin'">{{item.user.username}}</td>
               <td>
                 <!-- Connect / Disconnect -->
+                <button class="btn-danger btn btn-sm" @click="onRefreshStatus(item)">
+                  <i class="el-icon-refresh"></i>
+                </button>
                 <button
-                  class="btn btn-sm"
+                  class="btn btn-sm m-l-5"
                   @click="onConn(item)"
                   v-bind:class="{'btn-danger' : item.conn == 'off', 'btn-success' : item.conn == 'on'}"
                 >
@@ -242,8 +250,16 @@ import {
   registerWebhookWAGOService
 } from "../services/service";
 
+import {
+  STATUS_CONNECT,
+  STATUS_DISCONNECT,
+  STATUS_ERROR,
+  STATUS_NOT_CONFIG,
+  LINE_LIMIT
+} from "../services/endpoints";
+
 export default {
-  name: "APIConfig",
+  name: "PhoneLines",
   props: ["user", "replies", "senders", "users"],
   data() {
     return {
@@ -254,36 +270,48 @@ export default {
         apitoken: "",
         endpoint: "",
         autoreply: {},
-        conn: "on",
-        user: {}
+        conn: "off",
+        user: {},
+        order: -1
       },
       submitted: false,
       telecode: "",
       qrcode: "",
       isLoading: false,
       isAdmin: false,
-      isInit: true
+      isInit: true,
+      cache_senders: [],
+      status_conn: STATUS_CONNECT,
+      status_disconn: STATUS_DISCONNECT,
+      status_err: STATUS_ERROR,
+      status_no_config: STATUS_NOT_CONFIG
     };
   },
   methods: {
-    addSender() {
-      this.emptySender();
-    },
-
+    // before showing modal
     showSenderModal(item) {
       this.sender = { ...item };
       this.qrcode = "";
       this.telecode = "";
     },
 
+    // close modal
     closeSenderModal() {
       this.submitted = false;
+      this.emptySender();
       $("#senderModal").modal("hide");
     },
 
+    // create & update sender
     updateSender() {
       this.submitted = true;
-      debugger;
+      if (
+        this.sender.phone == "" ||
+        this.sender.name == "" ||
+        this.sender.endpoint == ""
+      ) {
+        return;
+      }
       if (this.sender.id && this.sender.id != null) {
         updateSenderService(this.sender)
           .then(response => {
@@ -292,7 +320,7 @@ export default {
                 "showSuccessMessage",
                 "Sender is successfully updated"
               );
-              this.refreshPage();
+              this.closeSenderModal();
               this.$emit("loadSenders");
             } else {
               this.$emit("showFailMessage", "Cannot update the Sender");
@@ -308,6 +336,35 @@ export default {
           this.$emit("showFailMessage", "Please authenticate first");
           return;
         }
+        // check for the current limitation
+        // get on count
+
+        if (this.user.role.type != "admin") {
+          let count = 0;
+          this.senders.forEach(s => {
+            if (s.conn == "on") {
+              count++;
+            }
+          });
+
+          if (count >= LINE_LIMIT) {
+            this.sender.conn = "off";
+            this.$emit(
+              "showFailMessage",
+              "Active Line numbers limited, you need to off one of your other number to activate thie number"
+            );
+          } else {
+            this.senders.conn = "on";
+          }
+        }
+
+        // add order
+        let maxOrder = 0;
+        this.senders.map(function(obj) {
+          if (obj.order > maxOrder) maxOrder = obj.order;
+        });
+        this.sender.order = maxOrder + 1;
+
         createSenderService(this.sender)
           .then(response => {
             if (response.status == 200) {
@@ -315,8 +372,8 @@ export default {
                 "showSuccessMessage",
                 "Sender is successfully created"
               );
+              this.closeSenderModal();
               this.$emit("loadSenders");
-              this.refreshPage();
             } else {
               this.$emit("showFailMessage", "Cannot create the Sender");
             }
@@ -327,6 +384,17 @@ export default {
       }
     },
 
+    // update order, trigger on drag & drop in table
+    updateOrder() {
+      this.senders.forEach((s, item) => {
+        s.order = item + 1;
+        updateSenderService(s);
+      });
+      this.cache_senders = this.senders.map(a => ({ ...a }));
+      this.$emit("showSuccessMessage", "Configuration orders are updated");
+    },
+
+    // clear the current sender
     emptySender() {
       this.sender = {
         phone: "",
@@ -340,6 +408,7 @@ export default {
       this.qrcode = "";
     },
 
+    // delete sender
     deleteSender(item) {
       deleteSenderService(item)
         .then(response => {
@@ -355,62 +424,63 @@ export default {
         });
     },
 
-    async refreshPage() {
-      this.closeSenderModal();
-      this.submitted = false;
-      this.emptySender();
-    },
-
-    async refreshStatus() {
+    // refresh status
+    async refreshStatus(all) {
       // get connection status
       this.isLoading = true;
-      for (var i = 0; i < this.senders.length; i++) {
-        if (
-          this.senders[i].type == "WA.Python" ||
-          this.senders[i].type == "WA.GO"
-        ) {
-          if (this.senders[i].conn == "off") {
-            this.senders[i].status = 1;
+      if (all) {
+        this.senders.forEach(s => {
+          s.status = undefined;
+        });
+      }
+      for (let i = 0; i < this.senders.length; i++) {
+        const s = this.senders[i];
+        if (s.status != undefined) {
+          continue;
+        }
+        if (s.type == "WA.Python" || s.type == "WA.GO") {
+          if (s.conn == "off") {
+            s.status = 1;
           } else {
-            await getConnectionStatusService(
-              this.senders[i].apitoken,
-              this.senders[i].type
-            )
+            await getConnectionStatusService(s.apitoken, s.type)
               .then(response => {
                 if (response.status == 200) {
-                  if (this.senders[i].type == "WA.Python") {
-                    this.senders[i].status = this.getStatusCode(
-                      response.data.internetStatus
-                    );
-                  } else if (this.senders[i].type == "WA.GO") {
-                    this.senders[i].status = 0;
+                  if (s.type == "WA.Python") {
+                    s.status = this.getStatusCode(response.data.internetStatus);
+                  } else if (s.type == "WA.GO") {
+                    s.status = STATUS_CONNECT;
                   }
                 } else {
-                  this.senders[i].status = 2;
+                  s.status = STATUS_DISCONNECT;
                 }
               })
               .catch(() => {
-                this.senders[i].status = 2;
+                s.status = STATUS_ERROR;
               });
           }
         } else {
-          this.senders[i].status = 3;
+          s.status = STATUS_NOT_CONFIG;
         }
         this.$forceUpdate();
       }
+
+      // make exact copy cache
+      this.cache_senders = this.senders.map(a => ({ ...a }));
       this.isLoading = false;
     },
 
+    // get status code from the string
     getStatusCode(val) {
       if (val == "connected") {
-        return 0;
+        return STATUS_CONNECT;
       } else if (val == "disconnected") {
-        return 1;
+        return STATUS_DISCONNECT;
       } else {
-        return 2;
+        return STATUS_ERROR;
       }
     },
 
+    // generate qr code
     async qrScan() {
       try {
         if (this.sender.name == "" || this.sender.phone == "") {
@@ -525,6 +595,7 @@ export default {
       }
     },
 
+    // after qr code registgerd, we need to register hook
     qrRegister() {
       if (
         this.sender.apitoken != "" &&
@@ -555,13 +626,35 @@ export default {
       }
     },
 
+    // change on / off for the line
     onConn(item) {
       const s = item;
+      // check for the limitation
+      // get limit count
+      if (this.user.role.type != "admin" && s.conn == "off") {
+        let count = 0;
+        this.senders.forEach(s => {
+          if (s.conn == "on") {
+            count++;
+          }
+        });
+
+        if (count >= LINE_LIMIT) {
+          this.$emit(
+            "showFailMessage",
+            "Active Line numbers limited, you need to off one of your other number to activate thie number"
+          );
+          s.conn = "off";
+          return;
+        }
+      }
+
       if (s.conn == "on") {
         s.conn = "off";
       } else if (s.conn == "off") {
         s.conn = "on";
       }
+
       updateSenderService(s)
         .then(response => {
           if (response.status == 200) {
@@ -572,6 +665,16 @@ export default {
         .catch(error => {
           this.$emit("showFailMessage", error.message);
         });
+    },
+
+    // refresh the selected item
+    onRefreshStatus(item) {
+      const i = this.senders.findIndex(x => x.id == item.id);
+      if (i >= 0) {
+        this.isLoading = true;
+        this.senders[i].status = undefined;
+        this.refreshStatus(false);
+      }
     },
 
     // get telegram code
@@ -625,7 +728,7 @@ export default {
           });
       }
     },
-
+    // submit telegram code
     submitTeleCode() {
       if (
         this.telecode != "" &&
@@ -679,18 +782,16 @@ export default {
     Loading,
     draggable
   },
-  async mounted() {
-    // load configurations
-    await this.refreshPage();
-  },
   watch: {
     senders: {
       immediate: true,
       handler() {
-        if (this.isInit && this.senders.length > 0) {
-          this.refreshStatus();
-          this.isInit = false;
-        }
+        // set status
+        this.cache_senders.forEach(s => {
+          let v = this.senders.find(x => x.id == s.id);
+          v.status = s.status;
+        });
+        this.refreshStatus(false);
       }
     },
     user: {
@@ -720,13 +821,6 @@ th {
 
 .tr-blocked {
   background-color: #888 !important;
-}
-
-.input-required {
-  width: 100%;
-  margin-top: 0.25rem;
-  font-size: 80%;
-  color: #dc3545;
 }
 
 .img-qr {

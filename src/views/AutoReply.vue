@@ -29,7 +29,7 @@
                 <!-- Edit button -->
                 <button
                   class="btn-danger btn btn-sm"
-                  @click="showReplyModal(item)"
+                  @click="setCurrentReply(item)"
                   type="danger"
                   size="small"
                   data-toggle="modal"
@@ -85,12 +85,23 @@
             <div class="form-group">
               <label for="reply-name" class="col-form-label">Name</label>
               <input type="text" class="form-control" id="reply-name" v-model="reply.name" />
-              <div v-if="submitted && !reply.name" class="input-required">Auto-reply name is required</div>
+              <div
+                v-if="submitted && !reply.name"
+                class="input-required"
+              >Auto-reply name is required</div>
             </div>
             <div class="form-group">
               <label for="reply-description" class="col-form-label">Description</label>
-              <input type="text" class="form-control" id="reply-description" v-model="reply.description" />
-              <div v-if="submitted && !reply.description" class="input-required">Auto-reply description is required</div>
+              <input
+                type="text"
+                class="form-control"
+                id="reply-description"
+                v-model="reply.description"
+              />
+              <div
+                v-if="submitted && !reply.description"
+                class="input-required"
+              >Auto-reply description is required</div>
             </div>
           </div>
           <div class="modal-footer">
@@ -131,49 +142,55 @@ export default {
       };
     },
 
-    showReplyModal(item) {
+    setCurrentReply(item) {
       this.reply = { ...item };
     },
 
     updateReply() {
       this.submitted = true;
+      if (this.reply.name == "" || this.reply.description == "") {
+        return;
+      }
       if (this.reply.id == undefined || this.reply.id == "") {
         // create new
         this.reply.user = this.user.id;
         createAutoReplyService(this.reply)
           .then(response => {
-            if (response.status == 200) {
-              this.reply = {
-                name: "",
-                description: ""
-              };
-              this.$emit("loadReplies");
-              this.$emit("showSuccessMessage", "Auto-reply is successfully created");
-              this.closeReplyModal();
-            } else {
-              this.$emit("showFailMessage", "Cannot add the Auto-reply");
-            }
+            this.updateReplyFromResponse(response);
           })
-          .catch(error => {
-            this.$emit("showFailMessage", error.message);
+          .catch(() => {
+            this.$emit(
+              "showFailMessage",
+              "Server is not responding now, try again later"
+            );
           });
       } else {
         // update new
         updateAutoReplyService(this.reply.id, this.reply)
           .then(response => {
-            if (response.status == 200) {
-              this.reply = {
-                name: "",
-                description: ""
-              };
-              this.$emit("loadReplies");
-              this.$emit("showSuccessMessage", "Auto-reply is successfully updated");
-              this.closeReplyModal();
-            }
+            this.updateReplyFromResponse(response);
           })
-          .catch(error => {
-            this.$emit("showFailMessage", error.message);
+          .catch(() => {
+            this.$emit(
+              "showFailMessage",
+              "Server is not responding now, try again later"
+            );
           });
+      }
+    },
+
+    updateReplyFromResponse(response) {
+      if (response.status == 200) {
+        this.$emit("loadReplies");
+        this.$emit("showSuccessMessage", "Auto-reply is successfully created");
+        this.closeReplyModal();
+      } else if (response.status == 403) {
+        this.$emit(
+          "showFailMessage",
+          "You don't have permission for this action"
+        );
+      } else {
+        this.$emit("showFailMessage", "Something went wrong!!");
       }
     },
 
@@ -182,7 +199,7 @@ export default {
         .then(response => {
           if (response.status == 200) {
             this.$emit("loadReplies");
-              this.$emit("showSuccessMessage", "Auto-reply is removed");
+            this.$emit("showSuccessMessage", "Auto-reply is removed");
           } else {
             this.$emit("showFailMessage", "Cannot remove the Auto-reply");
           }
@@ -193,14 +210,14 @@ export default {
     },
 
     closeReplyModal() {
+      this.reply = {
+        name: "",
+        description: ""
+      };
       this.submitted = false;
       $("#replyModal").modal("hide");
-    },
+    }
   },
-
-  mounted() {
-
-  }
 };
 </script>
 
@@ -213,12 +230,5 @@ th {
   padding: 5px;
   text-align: center;
   overflow-wrap: break-word;
-}
-
-.input-required {
-  width: 100%;
-  margin-top: 0.25rem;
-  font-size: 80%;
-  color: #dc3545;
 }
 </style>

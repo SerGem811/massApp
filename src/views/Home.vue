@@ -29,8 +29,8 @@
               />
             </el-tab-pane>
 
-            <el-tab-pane name="page-config" label="Configuration">
-              <APIConfig
+            <el-tab-pane name="page-lines" label="Phone-lines">
+              <PhoneLines
                 v-bind:user="user"
                 v-bind:replies="replies"
                 v-bind:senders="senders"
@@ -40,10 +40,10 @@
                 @showFailMessage="showFailMessage"
               />
             </el-tab-pane>
-
+<!-- 
             <el-tab-pane name="page-import" label="BulkData Import">
               <BulkData />
-            </el-tab-pane>
+            </el-tab-pane> -->
 
             <el-tab-pane name="page-bulksend" label="Message Massive">
               <MassiveMessage
@@ -58,8 +58,14 @@
               <Chat />
             </el-tab-pane>
 
-            <!-- <el-tab-pane name="page-admin" label="Admin">
-            </el-tab-pane> -->
+            <el-tab-pane name="page-users" label="Users" v-if="isAdmin">
+              <UsersPage
+                v-bind:users="users"
+                @loadUsers="loadUsers"
+                @showSuccessMessage="showSuccessMessage"
+                @showFailMessage="showFailMessage"
+              />
+            </el-tab-pane>
           </el-tabs>
         </div>
       </div>
@@ -69,15 +75,16 @@
 <script>
 import Responses from "./Responses";
 import AutoReply from "./AutoReply";
-import BulkData from "./BulkData";
-import APIConfig from "./APIConfig";
+// import BulkData from "./BulkData";
+import PhoneLines from "./PhoneLines";
 import Chat from "./Chat";
 import MassiveMessage from "./MassiveMessage";
+import UsersPage from "./UsersPage";
 
 import {
   getAutoRepliesService,
   getSenderService,
-  getUsersService,
+  getUsersService
 } from "../services/service";
 
 export default {
@@ -89,16 +96,18 @@ export default {
       senders: [],
       replies: [],
       users: [],
+      isAdmin: false
     };
   },
   name: "home",
   components: {
     Responses,
     AutoReply,
-    BulkData,
-    APIConfig,
+    // BulkData,
+    PhoneLines,
     Chat,
-    MassiveMessage
+    MassiveMessage,
+    UsersPage
   },
   methods: {
     // get replies from api
@@ -109,14 +118,16 @@ export default {
       }
       getAutoRepliesService(userid)
         .then(response => {
-          if(response.status == 200) {
-            if(response.data.length > 0) {
+          if (response.status == 200) {
+            if (response.data.length > 0) {
               this.replies = response.data;
             } else {
               this.updateErrorReplies("0 replies found");
             }
           } else {
-            this.updateErrorReplies("Something went wrong while loading replies");
+            this.updateErrorReplies(
+              "Something went wrong while loading replies"
+            );
           }
         })
         .catch(error => {
@@ -127,33 +138,34 @@ export default {
     // get senders from api
     loadSenders() {
       let userid = -1;
-      if(this.user.role.type != "admin") {
+      if (this.user.role.type != "admin") {
         userid = this.user.id;
       }
       getSenderService(userid)
-      .then(response => {
-        if(response.status == 200) {
-          if(response.data.length > 0) {
-            this.senders = response.data;
+        .then(response => {
+          if (response.status == 200) {
+            if (response.data.length > 0) {
+              this.senders = response.data;
+            } else {
+              this.updateErrorSenders("0 senders found");
+            }
           } else {
-            this.updateErrorSenders('0 senders found');
+            this.updateErrorSenders(
+              "Something went wrong while loading configurations"
+            );
           }
-        } else {
-          this.updateErrorSenders('Something went wrong while loading configurations');
-        }
-      })
-      .catch(error => {
-        this.updateErrorSenders(error.message);
-      });
-
+        })
+        .catch(error => {
+          this.updateErrorSenders(error.message);
+        });
     },
 
     // get users from api
     loadUsers() {
-      if(this.user.role.type == 'admin') {
+      if (this.user.role.type == "admin") {
         getUsersService()
           .then(response => {
-            if(response.status == 200 ) {
+            if (response.status == 200) {
               this.users = response.data;
             } else {
               this.users = [];
@@ -195,21 +207,23 @@ export default {
     }
   },
   created() {
-    const v = localStorage.getItem("userMass");
+    const v = localStorage.getItem("user-zap");
     const user = JSON.parse(v);
     this.user = user;
+    if (this.user.role.type == "admin") {
+      this.isAdmin = true;
+    }
   },
   mounted() {
     this.loadReplies();
     this.loadSenders();
     this.loadUsers();
-
   },
   watch: {
     mTab: {
       immediate: true,
       handler() {
-        this.mainTab = this.mTab
+        this.mainTab = this.mTab;
       }
     }
   }

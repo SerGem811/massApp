@@ -48,7 +48,7 @@
 <script>
 import router from "../router/index";
 
-import { register } from "../services/service";
+import { addUserService } from "../services/service";
 
 export default {
   data() {
@@ -64,10 +64,10 @@ export default {
       this.submitted = true;
       const { username, password, email } = this;
       if (username && password) {
-        register(username, password, email)
+        addUserService(username, password, email)
           .then(response => {
             if (response.status === 200) {
-              localStorage.setItem('userMass', JSON.stringify(response.data.user));
+              localStorage.setItem('user-zap', JSON.stringify(response.data.user));
               router.push('/');
             } else {
               this.$notify.error({
@@ -86,7 +86,7 @@ export default {
     }
   },
   mounted() {
-    localStorage.removeItem("userMass");
+    localStorage.removeItem("user-zap");
   }
 };
 </script>

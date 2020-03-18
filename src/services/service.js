@@ -5,7 +5,7 @@ import { BASE_URL, WA_Python_Url, TGPythonURL, WAGO_URL, WAGOHookURL, WAGOBulkSe
 
 const TIMER = 1200;
 
-export function login(username, password) {
+export function login(email, password) {
   return axios({
     method: 'POST',
     url: `${BASE_URL}/auth/local`,
@@ -14,19 +14,21 @@ export function login(username, password) {
       'Content-Type': 'application/json'
     },
     data: {
-      identifier: username,
+      identifier: email,
       password: password
     }
   });
 }
 
-export function register(username, password, email) {
+export function addUserService(username, password, email) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'POST',
     url: `${BASE_URL}/auth/local/register`,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     },
     data: {
       username: username,
@@ -38,19 +40,49 @@ export function register(username, password, email) {
 }
 
 export function getUsersService() {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'GET',
     url: `${BASE_URL}/users`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     }
+  });
+}
+
+export async function deleteUserService(id) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
+  return await axios({
+    method: 'DELETE',
+    url: `${BASE_URL}/users/${id}`,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
+    }
+  });
+}
+
+export function updateUserService(id, user) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
+  return axios({
+    method: 'PUT',
+    url: `${BASE_URL}/users/${id}`,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
+    },
+    data: user
   });
 }
 
 ///////////////// auto-reply services /////////////////////////////
 // get all auto-reply
 export function getAutoRepliesService(userid) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   let url = `${BASE_URL}/autoreplies`;
   if (userid != -1) {
     url += '?user=' + userid;
@@ -60,42 +92,49 @@ export function getAutoRepliesService(userid) {
     url,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     }
   });
 }
 // create auto-reply
 export function createAutoReplyService(data) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'POST',
     url: `${BASE_URL}/autoreplies`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     },
     data
   });
 }
 // update auto-reply
 export function updateAutoReplyService(id, reply) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'PUT',
     url: `${BASE_URL}/autoreplies/${id}`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     },
     data: reply
   });
 }
 // delete auto-reply
 export async function deleteAutoReplyService(id) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return await axios({
     method: 'DELETE',
     url: `${BASE_URL}/autoreplies/${id}`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     }
   });
 }
@@ -109,59 +148,68 @@ export async function getResponsesService(pagination, reply_id) {
   let limit = pagination.pageSize
 
   let url = BASE_URL + '/responsewapps?autoreply=' + reply_id + '&_start=' + start + '&_limit=' + limit + '&_sort=order:asc'
-
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return await axios({
     method: 'GET',
     url,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     }
   })
 }
 // create response
 export function createResponseService(response) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'POST',
     url: `${BASE_URL}/responsewapps`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     },
     data: response
   });
 }
 // update response
 export function updateResponseService(id, response) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'PUT',
     url: `${BASE_URL}/responsewapps/${id}`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     },
     data: response
   })
 }
 // delete response
 export async function deleteResponseService(id) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return await axios({
     method: 'DELETE',
     url: `${BASE_URL}/responsewapps/${id}`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     }
   });
 }
 // get response count
 export function countResponsesService() {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'GET',
     url: `${BASE_URL}/responsewapps/count`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     }
   })
 }
@@ -170,75 +218,87 @@ export function countResponsesService() {
 ///////////////// sender services /////////////////////////////////
 // get all senders
 export async function getSenderService(userid) {
-  let url = `${BASE_URL}/senderdata?_sort=user:asc`;
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
+  let url = `${BASE_URL}/senderdata?_sort=order:asc`;
   if (userid != -1) {
-    url += '?user=' + userid;
+    url += '&user=' + userid;
   }
   return await axios({
     method: 'GET',
     url,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     }
   })
 }
 // create sender data
 export function createSenderService(data) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'POST',
     url: `${BASE_URL}/senderdata`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     },
     data
   });
 }
 // update sender data
 export function updateSenderService(data) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'PUT',
     url: `${BASE_URL}/senderdata/${data.id}`,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     },
     data
   })
 }
 // delete sender data
 export function deleteSenderService(data) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'DELETE',
     url: `${BASE_URL}/senderdata/${data.id}`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     }
   });
 }
 ////////////////////////////////////////////////////////////////////
 
 export function setBulkData(data) {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'POST',
     url: `${BASE_URL}/bulkdata`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     },
     data
   })
 }
 
 export function getBulkData() {
+  const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'GET',
     url: `${BASE_URL}/bulkdata`,
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`
     }
   });
 }
@@ -392,12 +452,16 @@ export async function attachWebhookTGPythonService(token, phone) {
 ////////////////////////////////////////////////////////////////////
 
 /////////////////////  get status //////////////////////////////////
-export async function getConnectionStatusService(token, type) {
+export async function getConnectionStatusService(token, type, timeout) {
+  let t = timeout;
+  if(t == undefined) {
+    t = TIMER;
+  }
   // go-lang connection status
   if(type == 'WA.GO') {
     return await axios({
       method: 'GET',
-      timeout: TIMER,
+      timeout: t,
       url: `${WAGO_URL}/api/profile/me?sessionId=${token}`,
       headers: {
         'Accept': 'application/json',
@@ -416,7 +480,7 @@ export async function getConnectionStatusService(token, type) {
   return await axios({
     method: 'POST',
     url,
-    timeout: TIMER,
+    timeout: t,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
