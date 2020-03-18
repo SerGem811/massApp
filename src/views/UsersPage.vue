@@ -18,8 +18,9 @@
             <tr>
               <th style="width:10%;">No</th>
               <th style="width:15%">Action</th>
-              <th style="width:40%">Username</th>
+              <th style="width:30%">Username</th>
               <th style="width:35%">Email</th>
+              <th style="width:10%">Lines</th>
             </tr>
           </thead>
           <tbody>
@@ -46,6 +47,7 @@
                   icon="el-icon-info"
                   iconColor="red"
                   title="Quer deletar?"
+                  v-show="item.role.type!='admin'"
                 >
                   <el-button
                     slot="reference"
@@ -59,6 +61,7 @@
               </td>
               <td>{{item.username}}</td>
               <td>{{item.email}}</td>
+              <td>{{item.line_limit}}</td>
             </tr>
           </tbody>
         </table>
@@ -101,8 +104,13 @@
             </div>
             <div class="form-group">
               <label for="user-password" class="col-form-label">Password</label>
-              <input type="password" class="form-control" id="user-email" v-model="password" />
+              <input type="password" class="form-control" id="user-password" v-model="password" />
               <div v-if="submitted && !password" class="input-required">Password is required</div>
+            </div>
+            <div class="form-group">
+              <label for="user-password" class="col-form-label">Lines</label>
+              <input type="number" class="form-control" id="user-lines" v-model="currentUser.line_limit" />
+              <div v-if="submitted && currentUser.line_limit<0" class="input-required">Check your lines again</div>
             </div>
           </div>
           <div class="modal-footer">
@@ -120,19 +128,21 @@ import $ from "jquery";
 import {
   addUserService,
   deleteUserService,
-  updateUserService
+  updateUserService,
+  updateSenderService
   // updateUserService,
   // deleteUserService
 } from "../services/service";
 
 export default {
   name: "UsersPage",
-  props: ["users"],
+  props: ["users", "senders"],
   data() {
     return {
       currentUser: {
         username: "",
-        email: ""
+        email: "",
+        line_limit: 5
       },
       submitted: false,
       password: ""
@@ -140,11 +150,12 @@ export default {
   },
   methods: {
     addUser() {
-      (this.currentUser = {
+      this.currentUser = {
         username: "",
-        email: ""
-      }),
-        (this.password = "");
+        email: "",
+        line_limit: 5
+      };
+      this.password = "";
     },
 
     showEditModal(item) {
@@ -179,12 +190,17 @@ export default {
         return;
       }
 
+      if(this.currentUser.line_limit < 0) {
+        return;
+      }
+
       if (this.currentUser.id == undefined) {
         // create
         addUserService(
           this.currentUser.username,
           this.password,
-          this.currentUser.email
+          this.currentUser.email,
+          this.currentUser.line_limit
         )
           .then(response => {
             if (response.status == 200) {
@@ -204,12 +220,17 @@ export default {
       } else {
         // update
         const u = this.users.find(x => x.id == this.currentUser.id);
-
-        if(u.username != this.currentUser.username || u.email != this.currentUser.email) {
+        if(u.username != this.currentUser.username || u.email != this.currentUser.email || u.line_limit != this.currentUser.line_limit) {
           updateUserService(this.currentUser.id, this.currentUser)
           .then(response => {
             if(response.status == 200) {
+              if(u.line_limit > this.currentUser.line_limit && this.currentUser.role.type != 'admin') {
+                this.updateOnOff(this.currentUser);
+              }
               this.closeUserModal();
+
+              // case for line_limit
+              
               this.$emit("loadUsers");
               this.$emit("showSuccessMessage", "User updated");
             } else {
@@ -236,6 +257,23 @@ export default {
       this.password = "";
       this.submitted = false;
       $("#userModal").modal("hide");
+    },
+
+    updateOnOff(user) {
+      let indexes = [];
+      this.senders.forEach((s, i) => {
+        if(s.user.id == user.id && s.conn == "on") {
+          indexes.push(i);
+        }
+      });
+      const limit = parseInt(user.line_limit);
+      if(limit < indexes.length) {
+        for(let j = limit ; j < indexes.length; j++) {
+          this.senders[indexes[j]].conn = "off";
+          const s = this.senders[indexes[j]];
+          updateSenderService(s);
+        }
+      }
     }
   }
 };

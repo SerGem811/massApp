@@ -40,10 +40,6 @@
                 @showFailMessage="showFailMessage"
               />
             </el-tab-pane>
-<!-- 
-            <el-tab-pane name="page-import" label="BulkData Import">
-              <BulkData />
-            </el-tab-pane> -->
 
             <el-tab-pane name="page-bulksend" label="Message Massive">
               <MassiveMessage
@@ -61,6 +57,7 @@
             <el-tab-pane name="page-users" label="Users" v-if="isAdmin">
               <UsersPage
                 v-bind:users="users"
+                v-bind:senders="senders"
                 @loadUsers="loadUsers"
                 @showSuccessMessage="showSuccessMessage"
                 @showFailMessage="showFailMessage"

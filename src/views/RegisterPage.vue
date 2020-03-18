@@ -64,7 +64,7 @@ export default {
       this.submitted = true;
       const { username, password, email } = this;
       if (username && password) {
-        addUserService(username, password, email)
+        addUserService(username, password, email, 5)
           .then(response => {
             if (response.status === 200) {
               localStorage.setItem('user-zap', JSON.stringify(response.data.user));

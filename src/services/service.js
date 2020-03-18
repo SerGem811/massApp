@@ -20,7 +20,7 @@ export function login(email, password) {
   });
 }
 
-export function addUserService(username, password, email) {
+export function addUserService(username, password, email, line_limit) {
   const jwt = JSON.parse(localStorage.getItem("jwt-zap"));
   return axios({
     method: 'POST',
@@ -34,7 +34,8 @@ export function addUserService(username, password, email) {
       username: username,
       email: email,
       password: password,
-      confirmed: false
+      confirmed: false,
+      line_limit: line_limit
     }
   });
 }
@@ -259,7 +260,7 @@ export function updateSenderService(data) {
       'Authorization': `Bearer ${jwt}`
     },
     data
-  })
+  });
 }
 // delete sender data
 export function deleteSenderService(data) {

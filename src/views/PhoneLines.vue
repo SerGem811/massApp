@@ -24,7 +24,7 @@
         <table class="table table-striped">
           <thead class="thead-dark">
             <tr>
-              <th style="width: 8%">Order</th>
+              <th style="width: 8%">No</th>
               <th style="width: 5%" scope="col"></th>
               <th style="width: 12%" scope="col">Phone</th>
               <th style="width: 10%" scope="col">Name</th>
@@ -38,12 +38,12 @@
           </thead>
           <draggable v-model="senders" tag="tbody" handle=".handle" @update="updateOrder">
             <tr
-              v-for="item in senders"
+              v-for="(item, index) in senders"
               :key="item.id"
               v-bind:person="item"
               v-bind:class="{'tr-blocked' : item.conn == 'off'}"
             >
-              <td class="handle">{{item.order}}</td>
+              <td class="handle">{{index + 1}}</td>
               <td class="handle">
                 <span v-show="item.status==status_conn" class="status-dot status-con"></span>
                 <span v-show="item.status==status_disconn" class="status-dot status-discon"></span>
@@ -255,7 +255,6 @@ import {
   STATUS_DISCONNECT,
   STATUS_ERROR,
   STATUS_NOT_CONFIG,
-  LINE_LIMIT
 } from "../services/endpoints";
 
 export default {
@@ -281,6 +280,7 @@ export default {
       isAdmin: false,
       isInit: true,
       cache_senders: [],
+      orders: [],
       status_conn: STATUS_CONNECT,
       status_disconn: STATUS_DISCONNECT,
       status_err: STATUS_ERROR,
@@ -321,6 +321,7 @@ export default {
                 "Sender is successfully updated"
               );
               this.closeSenderModal();
+              this.orders = [];
               this.$emit("loadSenders");
             } else {
               this.$emit("showFailMessage", "Cannot update the Sender");
@@ -331,39 +332,21 @@ export default {
           });
       } else {
         // create new
-        // this.sender.user = this.user.id;
         if (this.sender.apitoken == "") {
           this.$emit("showFailMessage", "Please authenticate first");
           return;
         }
-        // check for the current limitation
-        // get on count
-
-        if (this.user.role.type != "admin") {
-          let count = 0;
-          this.senders.forEach(s => {
-            if (s.conn == "on") {
-              count++;
-            }
-          });
-
-          if (count >= LINE_LIMIT) {
-            this.sender.conn = "off";
-            this.$emit(
-              "showFailMessage",
-              "Active Line numbers limited, you need to off one of your other number to activate thie number"
-            );
-          } else {
-            this.senders.conn = "on";
-          }
-        }
-
         // add order
         let maxOrder = 0;
         this.senders.map(function(obj) {
           if (obj.order > maxOrder) maxOrder = obj.order;
         });
         this.sender.order = maxOrder + 1;
+        if (!this.isAdmin) {
+          this.sender.user = this.user.id;
+        }
+        // check for the current limitation
+        this.getEnableState();
 
         createSenderService(this.sender)
           .then(response => {
@@ -373,6 +356,7 @@ export default {
                 "Sender is successfully created"
               );
               this.closeSenderModal();
+              this.orders = [];
               this.$emit("loadSenders");
             } else {
               this.$emit("showFailMessage", "Cannot create the Sender");
@@ -387,7 +371,7 @@ export default {
     // update order, trigger on drag & drop in table
     updateOrder() {
       this.senders.forEach((s, item) => {
-        s.order = item + 1;
+        s.order = this.orders[item];
         updateSenderService(s);
       });
       this.cache_senders = this.senders.map(a => ({ ...a }));
@@ -414,6 +398,9 @@ export default {
         .then(response => {
           if (response.status === 200) {
             this.$emit("showSuccessMessage", "Sender is successfully removed");
+            const index = this.cache_senders.findIndex(x => x.id == item.id);
+            this.cache_senders.splice(index, 1);
+            this.orders = [];
             this.$emit("loadSenders");
           } else {
             this.$emit("showFailMessage", "Cannot delete the sender");
@@ -466,6 +453,13 @@ export default {
 
       // make exact copy cache
       this.cache_senders = this.senders.map(a => ({ ...a }));
+
+      if (this.orders.length == 0) {
+        this.senders.forEach(s => {
+          this.orders.push(s.order);
+        });
+      }
+
       this.isLoading = false;
     },
 
@@ -628,37 +622,21 @@ export default {
 
     // change on / off for the line
     onConn(item) {
-      const s = item;
-      // check for the limitation
-      // get limit count
-      if (this.user.role.type != "admin" && s.conn == "off") {
-        let count = 0;
-        this.senders.forEach(s => {
-          if (s.conn == "on") {
-            count++;
-          }
-        });
-
-        if (count >= LINE_LIMIT) {
-          this.$emit(
-            "showFailMessage",
-            "Active Line numbers limited, you need to off one of your other number to activate thie number"
-          );
-          s.conn = "off";
+      this.sender = item;
+      if (this.sender.conn == "on") {
+        this.sender.conn = "off";
+      } else if (this.sender.conn == "off") {
+        if (!this.getEnableState()) {
           return;
         }
+        this.sender.conn = "on";
       }
 
-      if (s.conn == "on") {
-        s.conn = "off";
-      } else if (s.conn == "off") {
-        s.conn = "on";
-      }
-
-      updateSenderService(s)
+      updateSenderService(this.sender)
         .then(response => {
           if (response.status == 200) {
             this.$emit("showSuccessMessage", "Connection status is updated");
+            this.orders = [];
             this.$emit("loadSenders");
           }
         })
@@ -776,6 +754,35 @@ export default {
       } else {
         this.$emit("showFailMessage", "Telegram code is required");
       }
+    },
+
+    // get enabled on/off
+    getEnableState() {
+      // get count of user
+      let count = 0;
+      this.senders.forEach(s => {
+        let uid = this.sender.user;
+        if(typeof this.sender.user == 'object') {
+          uid = this.sender.user.id;
+        }
+        if (s.user.id == uid && s.conn == "on") {
+          count++;
+        }
+      });
+      let u = this.user;
+      if (this.isAdmin) {
+        u = this.users.find(x => x.id == this.sender.user.id);
+      }
+      if (count >= u.line_limit) {
+        this.$emit(
+          "showFailMessage",
+          "Active Line numbers limited, you need to off one of your other number to activate thie number"
+        );
+        this.sender.conn = "off";
+        return false;
+      }
+      this.sender.conn = "on";
+      return true;
     }
   },
   components: {
